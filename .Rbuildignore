@@ -6,3 +6,5 @@
 ^testing_scripts$
 ^.*\.accdb$
 ^.*\.zip$
+^.*\.png$
+^.*\.jpg$
