@@ -1,0 +1,63 @@
+Package: waterNETN
+Title: Package for importing, querying, summarizing and visualizing NETN water data
+Version: 1.03
+Authors@R: c(
+    person('Kate', 'Miller', email = 'kathryn_miller@nps.gov', role = c('aut', 'cre')),
+    person('Jess', 'Pollack', role = 'aut'),
+    person('Kathleen', 'Brown', role = 'aut'),
+    person('EJ', 'Holm', role = 'aut'))
+Description: This package contains functions that import the water data package from 
+    the NETN water backend and or exported CSVs of the water data package to perform 
+    basic queries, data summaries and visualizations.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+URL: https://github.com/doi-nps/waterNETN
+BugReports: https://github.com/doi-nps/waterNETN/issues
+Collate: 
+    'exportData.R'
+    'getSites.R'
+    'getEvents.R'
+    'getChemistry.R'
+    'getDischarge.R'
+    'getLightPen.R'
+    'getSecchi.R'
+    'getSitesLake.R'
+    'getSitesStream.R'
+    'getSondeInSitu.R'
+    'getStreamObs.R'
+    'getWaterLevel.R'
+    'importData.R'
+    'theme_WQ.R'
+    'plotLakeProfile.R'
+    'plotPrecipDischarge.R'
+    'plotScatterPlot.R'
+    'plotTrend.R'
+    'plotWaterBands.R'
+    'prepFMtoAccess.R'
+    'sumEvents.R'
+Imports: 
+    dplyr,
+    ggplot2,
+    purrr,
+    tidyr
+Suggests: 
+    climateNETN,
+    DBI,
+    hms,
+    httr,
+    jsonlite,
+    odbc,
+    raster,
+    RColorBrewer,
+    readxl,
+    rLakeAnalyzer,
+    scales,
+    sf,
+    SPEI,
+    XML,
+    zip
+Depends: 
+    R (>= 4.0)
+LazyData: true

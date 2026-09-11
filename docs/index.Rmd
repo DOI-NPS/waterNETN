@@ -1,0 +1,889 @@
+---
+output: html_document
+title: "Using waterNETN R pkg." 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(width = 10)
+library(tidyverse)
+library(kableExtra)
+library(cowplot)
+```
+
+```{css echo = FALSE}
+.indent {
+margin-left: 25px;
+font-size: 14px;
+}
+
+.indent2 {
+margin-left: 50px;
+font-size: 12px;
+}
+
+.drop{
+  font-family: "Arial",Arial,sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  padding:0px 0px 0px 0px;
+  margin:0px 0px 0px 0px;
+}
+
+.fxn{
+  color:#1942B5;
+  font-size:14px;
+  font-weight: bold;
+}
+
+.title{
+ display:none;
+}
+/*
+h4{
+  color:#1942B5;
+}
+*/
+```
+
+```{r echo = F, include = F}
+print_head <- function(df){
+  knitr::kable(df[1:6,]) |> #, table.attr = "style='width:60%;'") |> 
+    kableExtra::kable_classic(full_width = F, font_size = 12, 
+                              bootstrap_options = c("condensed"))
+}
+library(tidyverse)
+park = 'all';site = 'all'; site_type = 'all'; years = 2006:2023; months = 1:12; output = 'short'
+parameter = c("ANC", "NH3", "pH", "Temp_C", "SDepth_m", "Discharge_csf", "PenetrationRatio");
+... = NULL; smooth = F; layers = c("points", "lines"); threshold = T; legend_position = 'bottom'; span = 0.6
+```
+
+## Using the waterNETN R package {.tabset .tabset-pills}
+
+### Getting started {.tabset}
+
+#### Installation
+<h4><b>Step 1.</b> Install R, RStudio, and RTools in Software Center</h4>
+<h4><b>Step 2.</b> Install pak package in R:</h4>
+```{r, eval = F, class.source = "indent"}
+install.packages('pak')
+```
+<h4><b>Step 3.</b> Install waterNETN from github</h4>
+Note that whenever the `waterNETN` package is updated, you can rerun this code to install the latest version.
+```{r, eval = F, class.source = "indent"}
+library(pal)
+pkg_install("doi-nps/waterNETN")
+```
+<h4><b>Step 4.</b> Load waterNETN R package</h4>
+```{r, class.source = "indent"}
+library(waterNETN)
+```
+<h4><b>Step 5.</b> Import data</h4>
+Note that R is not able to connect to files on Sharepoint or MS Teams (b/c Teams also stores all files on Sharepoint). That means you need to store data package files on your local machine or on a server (e.g. NETN Z drive). The default option for importing data will add the data package views (i.e., flatfiles) to an environment called VIEWS_WQ to your Environment work space (i.e. Environment tab in top right panel). If you would rather import each individual view into your R session, specify with the new_env argument (e.g., `importData(new_env = F)`).
+```{r echo = F, results = 'hide', include = F}
+importData(type = 'zip', 
+           filepath = "../data/records-2313941.zip")
+```
+<p class = 'indent'>
+<span style='color:#1942B5;'><b>Option 1.</b> Import data via .csv files. The file path should be where csvs are on your machine or server.</span></p>
+```{r, eval = F, class.source = "indent"}
+importData(type = 'csv',
+           filepath = "./data/records-2313941") # update filepath to your computer
+```
+<p class = 'indent'>
+<span style='color:#1942B5;'><b>Option 2.</b> Import data via zip file of csvs. The filepath should be the location and name of the zip file.</span></p>
+```{r eval = F, class.source = "indent"}
+importData(type = 'zip', 
+           filepath = "./data/records-2313941.zip")
+```
+<p class = 'indent'>
+<span style='color:#1942B5;'><b>Option 3.</b> Import data via data package database file on your computer</span></p>
+```{r eval = F, class.source = "indent"}
+importData(type = 'dbfile',
+           filepath = "./data/NETN_h3Ov4_DataPackage_202331115.accdb")
+```
+<p class = 'indent'>
+<span style='color:#1942B5;'><b>Option 4.</b> Import data via data package database DSN (Data Source Name) on your computer. </span>
+Note that this is the default setting. As long as you have a named DSN called "NETNWQ_DP" that links to the data package database, and that database links to the latest NETN WQ backend database, the code below will run. See <i>Setting up DSN</i> tab for how to set up DSN.</p>
+```{r eval = F, class.source = "indent"}
+importData() # easiest but must have DSN set up
+importData(type = 'DSN', odbc = "NETNWQ_DP") # equivalent to line above
+```
+<h4><b>Step 6.</b> (Optional) Export data package to zip </h4>
+You can export all of the csvs to a zip file with the day's date stamped on the file name. This allows you to import the tables from the database, then export the csvs as one zip file.
+```{r eval = F, class.source = "indent"}
+importData() # easiest bust must have DSN set up
+exportData(filepath = "./data", zip = TRUE) 
+```
+
+```{r eval = F, echo = F, class.source = "indent"}
+importData() # easiest byt nust have DSN set up
+exportData(filepath = "../data", zip = TRUE) 
+```
+
+<h4><b>Step 7. Play with the data</b></h4>
+The functions in the `waterNETN` package are designed to work with the views, and are the best way to interact with the data to query by park, site, site type, year, parameter, etc. However, if you want to view the raw data, and you imported the data into the VIEWS_WQ environment, you can access them with the code below:
+```{r eval = F, class.source = "indent"}
+# See list of the views
+names(VIEWS_WQ)
+
+# View one of the views
+View(VIEWS_WQ$Chemistry_Data)
+
+# Assign a view to a data frame named chem in R. Interact with chem the way you would work with any normal data frame in R. 
+chem <- VIEWS_WQ$Chemistry_Data
+
+```
+
+If you want to use the `print_head()` function that shows output in the markdown, run the code below. This makes the results print cleaner in the markdown report. For your purposes, you can just run: `head(dataframe)`.
+```{r, class.source = "indent"}
+print_head <- function(df){
+  knitr::kable(df[1:6,]) |> #, table.attr = "style='width:60%;'") |> 
+    kableExtra::kable_classic(full_width = F, font_size = 12, 
+                              bootstrap_options = c("condensed"))
+}
+
+```
+#### Getting help
+<h4><b>Getting (and improving) help</b></h4>
+The functions in `waterNETN` have help documentation like any R package. To view the help, you can go to the Packages tab and click on waterNETN (see below). That will show you all the functions in the package. Clicking on individual functions will take you to the help documentation for that function. 
+```{r echo = F, out.width = 500, fig.align = 'center'}
+knitr::include_graphics("./www/finding_R_package.jpg")
+```
+
+<p class = 'fxn'>You can also see the help of a function by running, for example: </p>
+```{r, class.source = 'indent', eval = F}
+?importData
+```
+
+<p class = 'fxn'>If `waterNETN` isn't loaded yet, you'd run: </p>
+```{r, class.source = 'indent', eval = F}
+?waterNETN::importData
+```
+
+Each function's help includes a Description, Usage (i.e. function arguments and their defaults), Argument options/definitions, and several examples showing how the function can be used. 
+
+<b><span style='color:red;'>This is where you come in! If you notice typos or can think of better descriptions, examples, error messages, etc., please send them my way!</b></span> After we're more comfortable with R packages and get versed on GitHub, you'll be able to make those changes directly in the package. For now, you can just send me your suggestions and I'll make the changes.
+
+Finally, if you ever want to peak under the hood at the function, you can view it several ways. 
+<ol>
+<li>Keep F2 key pressed and click on the function name in R. This trick works for many but not all functions in R.</li>
+<li>View code in the <a href="https://github.com/doi-nps/waterNETN/tree/main">GitHub doi-nps/waterNETN repo</a>. The functions are in the R folder. 
+
+#### Setting up DSN
+<h4><b>Setting up a DSN</b></h4>
+<ol>
+<li>Go to Windows Start Menu and search ODBC. Click on ODBC Data Sources (64-bit) </li>
+
+```{r echo = F, out.height = '457px', out.width = '564px', fig.align = 'center'}
+knitr::include_graphics("./www/ODBC_step_1.jpg")
+```
+<li>Click on <i>Add</i>, then select <i>Microsoft Access Driver (\*.mdb, \*.accdb)</i> then click <i>Finish</i> in next menu.</li>
+
+```{r echo = F, out.height = '450px', out.width = '1018px', fig.align = 'center'}
+knitr::include_graphics("./www/ODBC_step_2.jpg")
+```
+
+<li>Enter <b>NETNWQ_DP</b> into the Data Source Name (red arrow), click on Select (red circle). In new window, click on C:/ (orange arrow) and find the path to your database. If it's on the Z drive, then click on the Drives window and select correct Drive. Click on the data package database (yellow arrow). When complete, click OK. Finally, add the name of the database file to the Description (blue arrow), so it's easier to check whether you're using the latest version.  </li>
+```{r echo = F, out.height = '486px', out.width = '600px', fig.align = 'center'}
+knitr::include_graphics("./www/ODBC_step_3.jpg")
+```
+
+<li>If updating an existing DSN, follow similar process, except click on the DSN in the first window and select <i>Configure</i> instead of Add.</li>
+</ol>
+
+### Data Ingestion Step {.tabset}
+Before FileMaker Go files are ingested into the MS Access database, use the `prepFMtoAccess()` function to scrub placeholder values from the exported .csv files. The function converts placeholder values that FileMaker uses to prevent null values to NAs when “No measurement” is selected for Datum Name and/or Discharge Method in the FileMaker Go application. Additionally, it converts certain placeholder values to NAs when “No water sample taken” is recorded in the application. The table below shows the FileMaker Go export placeholders that are converted to NAs for both Stream and Lake applications. 
+<br>
+
+```{r include = F}
+intbl <- data.frame(FMapp = c("Lake", "Lake", rep("Lake, Stream", 3), rep("Stream", 10)),
+                    FMcol = c("Stage_GageReading", "Stage_Time", "WaterSample_QC_IBWExp",
+                              "WaterSample_QC_Time", "WaterSample_Time", "Flow_AvgVel",
+                              "Flow_Discharge_calc", "Flow_Discharge_cfs", "Flow_TotalArea",
+                              "Flow_TotalWidth", "FlowTrackerTemp", "tbl_Stage::Stage_Reading_1",
+                              "tbl_Stage::Stage_Reading_2", "tbl_Stage::Stage_Time_1", 
+                              "tbl_Stage::Stage_Time_2"),
+                    FMexp = c("0", "00:00:00", "1/1/0001", "00:00:00", "00:00:00",
+                              "0", "0", "0", "0", "0", "0", "0", "0", "00:00:00", "00:00:00"),
+                    Ingest = c(rep("NA", 15)))
+
+inkbl <- kable(intbl, caption = "Table 1. Details of FileMaker ingestion script changes prior to MS Access import.",
+               col.names = c("FileMaker app", "FileMaker export column name", 
+                             "FileMaker export value", "Ingestion script replacement value"),
+               align = c("c", "l", "c", "c")) |> 
+         kableExtra::kable_styling(fixed_thead = T, bootstrap_options = c("condensed", "striped"),
+                                   full_width = T, position = 'left')
+
+```
+```{r echo = F}
+inkbl
+```
+
+The `prepFMtoAccess()` function requires users to specify the path and file name, and currently works with xlsx files for import and csv for export. The function will determine whether the data is from a lake or stream based on column names. The function then exports a csv in the same filepath and with the same excel_name with '_cleaned_' and the date added to the filename, and that is ready to be imported into MS Access. Note that function can only work with lake or stream data, not both in the same function call. Examples are below. Note that additional testing of the data and import in MS Access is necessary to ensure dates and GUIDs are importing properly. Depending on how the MS Access import works, the cleaned csv may need to be opened in Excel and saved as an xlsx. Better yet, the export from FileMaker is as a csv or txt file instead of xlsx. 
+
+<p class = 'fxn'>Clean lake data and return cleaned data in global environment.</p>
+```{r eval = F}
+prepFMtoAccess(filepath = "../data", excel_name = "ACAD_WQ_Lakes_2025-06.xlsx", keep_file = T)
+```
+
+<p class = 'fxn'>Clean stream data.</p>
+```{r eval = F}
+prepFMtoAccess(filepath = "../data", excel_name = "ACAD_WQ_Stream_2025-06.xlsx")
+```
+
+
+### get Data functions {.tabset}
+#### getSites() {.tabset}
+##### getSites()
+Query site-level data. This function combines columns in common between the Sites_Stream and Sites_Lake views. This is a good building block for other functions, but may be less helpful on its own. Though, one helpful use of this function is to get the site codes for a given park or site.
+
+<p class = 'fxn'>Get site info for ACAD streams</p>
+```{r}
+ACAD_streams <- getSites(park = 'ACAD', site_type = 'stream')
+print_head(ACAD_streams)# top 6 rows
+```
+
+<p class = 'fxn'>Get site info for all sites in MABI
+```{r}
+mabi <- getSites(park = "MABI")
+print_head(mabi)# top 6 rows
+```
+
+<p class = 'fxn'>List site codes and their full site name for SARA</p>
+```{r}
+sara_sites <- getSites(park = "SARA") |> select(SiteCode, SiteName)
+print_head(sara_sites)# top 6 rows
+```
+
+<p class = 'fxn'> Get all fields of site info for Primrose Brook in MORR </p>
+```{r}
+prim <- getSites(site = "MORRSB", output = "verbose")
+print_head(prim)# top 6 rows
+```
+
+##### getSitesLake()
+Query site-level data for lakes only. This returns lake-only columns in the Sites_Lake views
+<p class = 'fxn'>Get site info for ACAD lakes</p>
+```{r}
+ACAD_lakes <- getSitesLake(park = "ACAD")
+print_head(ACAD_lakes)# top 6 rows
+```
+
+<p class = 'fxn'>Get all site info for the Pogue Pond</p>
+```{r}
+pogue <- getSitesLake(site = "MABIPA", output = 'verbose')
+print_head(pogue)# top 6 rows
+```
+
+<p class = 'fxn'>Get all site info for lakes in LNETN</p>
+```{r}
+lnetn <- c("MABI", "MIMA", "MORR", "ROVA", "SAGA", "SAIR", "SARA", "WEFA")
+lnetn_lks <- getSitesLake(park = lnetn)
+print_head(lnetn_lks)# top 6 rows
+```
+
+##### getSitesStream()
+Query site-level data for streams only. This returns stream-only columns in the Sites_Stream views
+<p class = 'fxn'>Get site info for ACAD streams</p>
+```{r}
+ACAD_str <- getSitesStream(park = "ACAD")
+print_head(ACAD_str)# top 6 rows
+```
+
+<p class = 'fxn'>Get all site info for the Pogue Stream</p>
+```{r}
+poguestr <- getSitesStream(site = "MABISA", output = 'verbose')
+print_head(poguestr)# top 6 rows
+```
+
+<p class = 'fxn'>Get all site info for streams in LNETN</p>
+```{r}
+lnetn <- c("MABI", "MIMA", "MORR", "ROVA", "SAGA", "SAIR", "SARA", "WEFA")
+lnetn_str <- getSitesStream(park = lnetn)
+print_head(lnetn_str)# top 6 rows
+```
+
+#### getEvents()
+Query water data by park, site, site_type, year and month. 
+
+<p class = 'fxn'>Get events for all sites in MABI from 2021-2023</p>
+```{r}
+mabi <- getEvents(park = "MABI", years = 2021:2023)
+print_head(mabi)# top 6 rows
+```
+
+<p class = 'fxn'>Get events for SARA sites sampled in 2019 and 2023</p>
+```{r}
+sara <- getEvents(park = "SARA", years = c(2019, 2023))
+print_head(sara) # top 6 rows
+```
+
+<p class = 'fxn'>Get info for all ACAD lakes sampled in April</p>
+```{r}
+ACAD_lake <- getEvents(park = 'ACAD', site_type = 'lake', months = 4, event_type = 'all')
+print_head(ACAD_lake) # top 6 rows
+```
+
+#### getChemistry()
+This function allows you to query the Chemistry_Data view by park, site, site type, year, month, parameter, and sample type. The returned data frame is long (i.e. stacked) to facilitate data summary and plotting. Note that sample depth is not a filter in getChemistry() as it is with the Sonde In Situ data. 
+
+<p class = 'fxn'>Get N parameters for all sites and non-QAQC events in MIMA.</p> 
+Note that `QC_type = "0"` is the default for this function, which returns only non-QAQC events. Note also the use of named objects for the arguments. This allows you to set them at the top of a script, rather than having to type them out repeatedly. You can then change them in 1 place (i.e., update the year to 2024) and rerun the code. 
+```{r}
+n_params <- c("NH3", "NH3_mgL", "NO2", "NO2_mgL", "NO2+NO3", 
+              "NO2+NO3_mgL", "NO3", "NO3_ueqL", "TN", "TN_mgL")
+period <- 2006:2023
+mima_n <- getChemistry(park = "MIMA", years = period, parameter = n_params)
+print_head(mima_n) # top 6 rows
+```
+
+<p class = 'fxn'>Get chemistry data for all sites and all parameters in MABI from 2021-2023</p>
+```{r}
+mabi <- getChemistry(park = "MABI", years = 2021:2023)
+print_head(mabi)# top 6 rows
+```
+
+<p class = 'fxn'>Get lab pH for all sites in MIMA and SAIR. Note that by not specifying years, all years by default will be included in the output.</p>
+```{r}
+ma_parks <- getChemistry(park = c("SAIR", "MIMA"), parameter = "pH_Lab")
+print_head(ma_parks)# top 6 rows
+```
+
+<p class = 'fxn'>Get chemistry for all ACAD lakes sampled in April for acidification.</p>
+```{r}
+ACAD_lake<- getChemistry(park = 'ACAD', site_type = 'lake', months = 4, event_type = 'all')
+print_head(ACAD_lake)# top 6 rows
+```
+
+<p class = 'fxn'>Get ANC for lower NETN parks from May to Oct.</p>
+```{r}
+lnetn <- c("MABI", "MIMA", "MORR", "ROVA", "SAGA", "SAIR", "SARA", "WEFA")
+anc <- getChemistry(park = lnetn, parameter = "ANC_ueqL", months = 5:10)
+print_head(anc)# top 6 rows
+```
+
+<p class = 'fxn'>Get censored and non-censored NH3 data for LNETN all years. Note the Flag column indicates the measurement is censored by reporting the detection limit used.</p>
+
+```{r}
+lnetn <- c("MABI", "MIMA", "MORR", "ROVA", "SAGA", "SAIR", "SARA", "WEFA")
+nh3_cen <- getChemistry(park = lnetn, parameter = "NH3_mgL", include_censored = T)
+print_head(nh3_cen)# top 6 rows
+```
+
+#### getDischarge()
+This function allows you to query the Discharge_Data view by park, site, site type, year, month, measurement method (e.g., flowtracker or pygmy), and measurement rating (e.g., E, G, F, P). Note that you can also return all columns or a reduced set of columns with the output argument. Default is output = 'short'. This function is set up to work with site_type = 'stream', so you don't have to specify that.
+
+<p class = 'fxn'>Get discharge for all sites in SARA from 2022-2024 </p>
+```{r}
+sara <- getDischarge(park = "SARA", years = 2022:2024)
+print_head(sara)# top 6 rows
+```
+
+<p class = 'fxn'>Get discharge for ACAD streams in July 2023 </p>
+```{r}
+acad_dis <- getDischarge(park = "ACAD", years = 2023, months = 7)
+print_head(acad_dis)# top 6 rows
+```
+
+<p class = 'fxn'>Get discharge measured with Flowtracker </p>
+```{r}
+flow <- getDischarge(method = c("Flowtracker"))
+print_head(flow)# top 6 rows
+```
+
+<p class = 'fxn'>Get excellent rated measurements only for MIMA</p>
+```{r}
+exc <- getDischarge(park = "MIMA", rating = "E")
+print_head(exc)# top 6 rows
+```
+
+#### getLightPen()
+This function allows you to query the Light_Penetration_Data view by park, site, site type, year, and month. Again output = 'short' is the default. If specify output = 'verbose', you'll get all possible columns. This is only set up to work with site_type = 'lake', so you don't have to specify that.
+
+<p class = 'fxn'>Get light penetration for the Pogue in MABI from 2021-2023.</p> 
+```{r}
+ mabi <- getLightPen(site = "MABIPA", years = 2021:2023)
+print_head(mabi)# top 6 rows
+```
+
+<p class = 'fxn'>Get light penetration for all ACAD lakes sampled in August.</p> 
+```{r}
+acad <- getLightPen(park = 'ACAD', months = 8)
+print_head(acad) # top 6 rows
+```
+
+
+<p class = 'fxn'>Get light penetration for the given ACAD sites related to the ACAD_ACID project.</p> 
+```{r}
+acad_acid <- getChemistry(site = c("ACJORD", "ACEAGL", "ACBUBL"), event_type = "acid")
+print_head(acad_acid) # top 6 rows
+```
+
+#### getSecchi()
+This function allows you to query Secchi data by park, site, site type, years, months and whether you want to return all observations, the first or the second. Default returns all observations with data. Note that this function is designed to only work with lakes, and doesn't require site_type = "lake" to be specified.
+<p class = 'fxn'>Get Secchi depth the Pogue from 2021-2023, first observer only</p>
+```{r}
+mabi <- getSecchi(site = "MABIPA", years = 2021:2023, observer_type = "first")
+print_head(mabi)# top 6 rows
+```
+
+<p class = 'fxn'>Get Secchi for all ACAD lakes sampled in July for all observers
+```{r}
+ACAD_lake <- getSecchi(park = 'ACAD', months = 7)
+print_head(ACAD_lake)# top 6 rows
+```
+
+<p class = 'fxn'>Get the long version of Secchi depth for all LNETN parks from May to October
+```{r}
+lnetn <- c("MABI", "MIMA", "MORR", "ROVA", "SAGA", "SAIR", "SARA", "WEFA")
+lnetn_secchi <- getSecchi(park = lnetn, months = 5:10, output = "verbose") 
+print_head(lnetn_secchi)# top 6 rows
+```
+
+#### getSondeInSitu()
+This function allows you to query Sonde in situ data by park, site, site type, years, months, parameter, QC type, surface vs. all, etc. Default returns all non-QAQC observations with data. The Sonde_InSitu_Data view is large and can take a few seconds to run for most parks, sites, years, parameters, etc. Surface only measurements, defined as as the medium of all samples within 2m of the surface, are the default.
+
+<p class = 'fxn'>Get Sonde data for all sites and parameters in MABI from 2021-2023 for non-QAQC samples</p>
+```{r}
+mabi <- getSondeInSitu(park = "MABI", years = 2021:2023)
+print_head(mabi)# top 6 rows
+```
+
+<p class = 'fxn'>get data for all DO parameters in MIMA from 2006-2023 for non-QAQC samples</p>
+```{r}
+params <- c("DOsat_pct", "DOsatLoc_pct", "DO_mgL")
+period <- 2006:2023
+mima_do <- getSondeInSitu(park = "MIMA", years = period, parameter = params)
+print_head(mima_do)# top 6 rows
+```
+
+<p class = 'fxn'>Get Temp data for all sample depths in Jordan Pond in ACAD for non-QAQC samples</p>
+```{r}
+ACAD_lake <- getSondeInSitu(site = 'ACJORD', parameter = "Temp_C", 
+                            sample_depth = "all")
+print_head(ACAD_lake)
+```
+
+<p class = 'fxn'>Get pH for lower NETN parks from May to Oct for QAQC and non-QAQC samples</p>
+```{r}
+lnetn_ph <- getSondeInSitu(park = "LNETN", param = "pH", months = 5:10, 
+                           QC_type = 'all')
+print_head(lnetn_ph)# top 6 rows
+```
+
+#### getStreamObs()
+This function allows you to query stream observation data by park, site, year and month
+<p class = 'fxn'>Get stream observations for Pogue Stream all years</p>
+```{r}
+mabi <- getStreamObs(park = "MABI")
+print_head(mabi)# top 6 rows
+```
+
+<p class = 'fxn'>Get observations for all streams in ACAD May 2023 </p>
+```{r}
+ACAD_streams <- getStreamObs(park = 'ACAD', years = 2023, months = 5)
+print_head(ACAD_streams)# top 6 rows
+```
+
+<p class = 'fxn'>Get the long versions of stream observations in LNETN parks from May to October </p>
+```{r}
+lnetn <- c("MABI", "MIMA", "MORR", "ROVA", "SAGA", "SAIR", "SARA", "WEFA")
+lnetn_obs <- getStreamObs(park = lnetn, months = 5:10, output = "verbose")
+print_head(lnetn_obs)# top 6 rows
+```
+
+#### getWaterLevel()
+This function joins stage and water level data, and allows you to query by park, site, site_type, year, and month. Note that WL data start in 2013 in the view. 
+
+<p class = 'fxn'>Get water level data for Bubble Pond. </p>
+```{r}
+bubl <- getWaterLevel(site = "ACBUBL", years = 2013:2023)
+print_head(bubl)# top 6 rows
+```
+
+<p class = 'fxn'>Get water level data for Weir Pond in August. </p>
+```{r}
+weir <- getWaterLevel(site = "WEFAPA", months = 8)
+print_head(weir)# top 6 rows
+```
+
+<p class = 'fxn'>Get water level data for ACAD lakes in July 2023. </p>
+```{r}
+acad_jul <- getWaterLevel(park = "ACAD", years = 2023, months = 7)
+print_head(acad_jul)
+```
+
+### Plotting Functions {.tabset}
+#### plotWaterBands()
+This function produces a plot that summarizes the range of historic data compared with current measurements. The function can handle chemistry, Sonde in situ, Secchi depth, Light Penetration, and Discharge data, although it functions best with sonde and chemistry data. Historic measurements are displayed as the min-max values ever previously recorded (outermost band), upper and lower 95% distribution and middle 50% distribution (inner quartiles) of values previously recorded (inner bands). The line represents the median value.
+
+Currently you can only specify one parameter at a time. Values that exceed water quality thresholds (where they exist) are plotted as orange and will show an orange point in the legend. Values within WQ thresholds or for parameters without set thresholds are black. You can include threshold lines (default), or remove them, where they make the y axis range too big, via `threshold = FALSE`. If multiple sites are specified, they will be faceted.
+
+You can now add gridlines to the plot via the gridlines argument, and Temp in F via "Temp_F" argument. 
+
+<p class = 'fxn'>Plot pH in Jordan Pond for 2023 with gridlines on the y-axis</p>
+```{r message = FALSE, warning = FALSE}
+plotWaterBands(site = "ACJORD", year_curr = 2023, years_historic = 2006:2022, 
+  parameter = "pH", legend_position = 'right', gridlines = 'grid_y')
+```
+
+<p class = 'fxn'>Plot TN in Jordan Pond for 2023, including censored and gridlines on both x and y axes</p>
+```{r message = FALSE, warning = FALSE}
+plotWaterBands(site = "ACJORD", year_curr = 2023, years_historic = 2006:2022,
+  parameter = "TN_mgL", legend_position = 'right', include_censored = T, gridlines = "both")
+```
+
+<p class = 'fxn'>Same as above, but drop threshold lines and add gridlines on x-axis</p>
+```{r message = FALSE, warning = FALSE}
+plotWaterBands(site = "ACJORD", year_curr = 2023, years_historic = 2006:2022,
+  parameter = "TN_mgL", legend_position = 'right', include_censored = T, threshold = F, gridlines = "grid_x")
+```
+
+<p class = 'fxn'>Plot TN in Kroma Kill in SARA in 2023, with no gridlines (Default)</p>
+```{r message = FALSE, warning = FALSE}
+plotWaterBands(site = "SARASA", year_curr = 2023, years_historic = 2006:2022, parameter = "TN",
+               legend_position = 'right')
+```
+
+#### plotScatterPlot()
+This function produces points or loess smoothed lines of 2 variables, filtered on park, site, year, month, and 2 parameters. Works with lab chemistry, Sonde in situ, discharge, secchi depth, water level, and light penetration ratio. If multiple sites are specified, they will be plotted on the same figure, unless facet_site = T. Note that if you specify a site and parameter combination that doesn't exist (e.g., a stream site and a parameter only collected in lakes), the function will return an error message instead of an empty plot. Censored values are not permitted in this function.
+
+<p class = 'fxn'>Plot Temp vs DO for ROVA all years on same figure</p>
+```{r message = FALSE, warning = FALSE}
+plotScatterPlot(park = "ROVA", parameters = c("DO_mgL", "Temp_C"),
+  palette = 'viridis', facet_site = F, legend_position = "bottom")
+
+```
+
+<p class = 'fxn'>Plot Secchi depth vs. surface DOC in Eagle Lake, Jordan Pond, Echo Lake, and Witch Hole Pond</p>
+```{r message = FALSE, warning = FALSE}
+plotScatterPlot(site = c("ACEAGL", "ACJORD", "ACWHOL", "ACECHO"), parameters = c("SDepth_m", "DOC_mgL"),
+  span = 0.9, facet_site = F, legend_position = 'bottom', palette = c("red", "orange", "purple4", "blue"))
+```
+
+<p class = 'fxn'>Same as above, but points only </p>
+```{r message = FALSE, warning = FALSE}
+plotScatterPlot(site = c("ACEAGL", "ACJORD", "ACWHOL", "ACECHO"), parameters = c("SDepth_m", "DOC_mgL"),
+  span = 0.9, facet_site = F, legend_position = 'bottom', layers = 'points')
+```
+
+<p class = 'fxn'> Plot smoothed discharge vs. specific conductance for the Pogue Brook using span of 0.9, and green symbols. </p>
+```{r message = FALSE, warning = FALSE}
+plotScatterPlot(site = "MABISA", parameters = c("SpCond_uScm", "Discharge_cfs"), span = 0.9, palette = c("forestgreen"))
+```
+
+<p class = 'fxn'> Plot smoothed discharge vs. specific conductance for SARA streams using span of 0.9. </p>
+```{r message = FALSE, warning = FALSE}
+plotScatterPlot(park = "SARA", parameters = c("SpCond_uScm", "Discharge_cfs"), span = 0.9, facet_site = F,
+  legend_position = 'bottom', palette = c("blue", "orange"))
+```
+
+<p class = 'fxn'> Same as above, but faceted by site.</p>
+```{r message = FALSE, warning = FALSE}
+plotScatterPlot(park = "SARA", parameters = c("SpCond_uScm", "Discharge_cfs"), span = 0.9, facet_site = T)
+```
+
+<p class = 'fxn'>Plot TN vs discharge in SARA streams</p>
+```{r message = FALSE, warning = FALSE}
+plotScatterPlot(park = "SARA", parameters = c("TN_mgL", "Discharge_cfs"), span = 0.9, facet_site = F)
+```
+
+#### plotTrend()
+This function produces a trend plot filtered on park, site, year, month, and parameter.
+It works with chemistry, Sonde in situ, Secchi depth, Light Penetration, and Discharge data. If multiple sites are specified, they will be plotted on the same figure. If multiple parameters are specified, they will be plotted on separate figures. If smooth = T, a loess smoothed line will connect through the data. If smooth = F and layers includes "lines", then lines will connect the sample points, but will not connect across years, because of the break between October and May.
+
+There are several arguments to customize plots. 
+<ul>
+<li> Choose whether to include only active sites (default) or all sites that have been monitored via `active`. </li>
+<li> Choose whether to add points, lines, or both (default) via `layers` argument. </li>
+<li> If lines are chosen as a layer, choose whether to plot a loess smoothed line (default) or a line that connects the sample points via `smooth`. </li>
+<li> Choose whether to plot any water quality thresholds that exist via `threshold`. Upper limits are dashed. Lower limits are dotted. </li>
+<li> Choose whether to add gridlines, either both, grid_y or grid_x. Default is none. </li>
+<li> Choose whether to plot surface (default) or all depth measurements via `sample_depth`. </li>
+<li> Choose whether to include censored values or not via `include_censored`. </li>
+<li> Choose color palette via `palette`. Default is 'viridis', but other options are magma (yellow, red, purple), plasma (brighter version of magma), turbo (rainbow), or specify a vector of colors manually. See the <a href='https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html'>intro do viridis site</a> for more info on built in color palettes. </li>
+<li> Choose position of legend via `legend_position`. If you don't want to show the legend, `legend_position = 'none'`.</li>
+<li> Plot temperature in F via `parameter = "Temp_F"`.</li>
+<li> Additional customizations are defined in the help documentation, accessable via `?plotTrend()`</li>
+</ul>
+
+<details open><summary class='drop'>Single site; single parameter</summary>
+<p class = 'fxn'>Plot non-smoothed surface pH for Eagle Lake for all years with gridlines on y-axis. </p>
+```{r message = FALSE, warning = FALSE}
+plotTrend(site = "ACEAGL", parameter = "pH", palette = 'mako', years = 2021:2023) + theme_WQ()
+
+```
+
+<p class = 'fxn'>Plot smoothed surface pH for Eagle Lake for past 3 years using default span of 0.3 and by default not including the legend. </p>
+```{r message = FALSE, warning = FALSE}
+plotTrend(site = "ACEAGL", parameter = "pH", palette = 'dimgrey', years = 2021:2023)
+
+```
+<p class = 'fxn'>Plot smoothed surface pH for Eagle Lake and Jordan Pond for all years, with turbo palette, and using span of 0.75. </p>
+```{r message = FALSE, warning = FALSE}
+plotTrend(site = c("ACEAGL", "ACJORD"), parameter = "pH", span = 0.75, palette = "turbo", legend_position = 'bottom')
+
+```
+
+<p class = 'fxn'>Plot smoothed Secchi Depth in Jordan Pond for all years, including the legend, different color palette, and using span of 0.75. </p>
+```{r message = FALSE, warning = FALSE}
+plotTrend(site = "ACJORD", parameter = "SDepth_m", span = 0.75, palette = 'mako')
+
+```
+
+<p class = 'fxn'>Plot unsmoothed SO4 in Witch Hole Pond for all years, including censored values. </p>
+```{r message = FALSE, warning = FALSE}
+plotTrend(site = "ACWHOL", parameter = "SO4_ueqL", 
+          smooth = F, include_censored = TRUE, legend_position = 'bottom')
+
+```
+
+<p class = 'fxn'>Plot unsmoothed line only for pH in Witch Hole Pond for all years. </p>
+```{r message = FALSE, warning = FALSE}
+plotTrend(site = "ACWHOL", parameter = "pH", layers = "lines", 
+          smooth = F, legend_position = 'none')
+
+```
+
+
+</details>
+
+<details open><summary class='drop'>Multiple sites or params</summary>
+<p class = 'fxn'>Plot smoothed surface pH for active SARA streams over all years with 0.6 span and convert to plotly. Note that plotly figures don't seem to display in the current version of RStudio (2024.04.2), but they do render when knit with R Markdown to an html file. </p>
+```{r message = FALSE, warning = FALSE}
+p <- plotTrend(park = "SARA", site = c("SARASA", "SARASC", "SARASD"), 
+               site_type = "stream", parameter = "pH", 
+               legend_position = "right", span = 0.6)
+
+```
+
+<p class = 'fxn'>Plot smoothed surface Specific Conductance for all MIMA streams over all years with 0.6 span. </p>
+```{r message = FALSE, warning = FALSE}
+plotTrend(park = "MIMA", site_type = "stream", 
+          parameter = "SpCond_uScm", legend_position = "right", span = 0.6, palette = c("blue", "orange", "green3"))
+
+```
+
+<p class = 'fxn'>Plot non-smoothed surface of multiple Sonde parameters for all MIMA streams over all years with 0.6 span. Note that here I used Temp_F. </p>
+```{r message = FALSE, warning = FALSE}
+params <- c("Temp_F", "SpCond_uScm", "DOsat_pct", "pH")
+plotTrend(park = "MIMA", site_type = "stream", 
+          parameter = params, legend_position = "right", span = 0.6)
+
+```
+
+<p class = 'fxn'>Plot smoothed surface Secchi Depth, Specific Conductance, pH, and DOC in Jordan Pond for all years, including the legend, different color palette, and using span of 0.75. </p>
+```{r message = FALSE, warning = FALSE}
+plotTrend(site = "ACJORD", parameter = c("SDepth_m", "SpCond_uScm", "pH", "DOC_mgL"), 
+          span = 0.75, palette = 'mako')
+
+```
+
+<p class = 'fxn'>Plot smoothed surface water depth in the Pogue for all years, including a different color palette, and using span of 0.75. </p>
+```{r message = FALSE, warning = FALSE}
+plotTrend(site = "MABIPA", parameter = "WaterLevel_Feet", span = 0.75, 
+          palette = 'mako')
+
+```
+
+<p class = 'fxn'>Plot smoothed TN, TP and SO4 in all MORR sites for all years, including the legend, different color palette, and using span of 0.6. Thresholds, where they exist,  plot by default.</p>
+```{r message = FALSE, warning = FALSE}
+plotTrend(park = "MORR", parameter = c("TN_mgL", "TP_ugL", "SO4_ueqL"), 
+          span = 0.6, legend_position = 'bottom', palette = 'plasma')
+```
+
+</details>
+
+#### plotLakeProfile()
+This function produces a heatmap in 1-m bins for ACAD and 0.25m bins for LNETN. You can filter on park, site, year, month, Sonde in situ parameter and either sample relative to the surface or relative to surface elevation. You can only specify one parameter at a time. If multiple sites or years are selected, plots will be faceted on those factors. Keep options limited for best plotting. Note also that you can either select ACAD or LNETN parks, because of the differences in binning.
+
+The option to plot relative to surface elevation (eg depth_type = 'elev') corrects sample depth for elevation using water level data and datum elevation for that sampling event. The elevation-corrected option allows you to see how the water column is shifting over time, but currently only works for years >= 2013 in ACAD, as water levels prior to that are not in the current data package. Default setting is raw, where the raw sample depths are plotted instead of elevation.
+
+Note that occasionally profiles skip a bin, which show up as white sections in the plots. Incomplete sampling in 2020 and 2021 also shows up as white sections. If you specify a lake x year x parameter combination that doesn't exist (e.g., a year a lake isn't sampled), the function will return an error message instead of an empty plot.
+
+The width of the profiles take into account the number of days between sampling events. For the first and last months (typically May and October), the left/right side of the profiles are padded by 14 days. Otherwise, profile widths are centered on the sample day with the left side representing half the number of days between that visit and the previous visit and the right side representing half the number of days between that visit and the following visit. Black lines are the thermocline, as calculated by rLakeAnalyzer.  
+
+There are several arguments to customize plots. 
+<ul>
+<li>Choose whether to plot the theromocline as points on each profile via `plot_thermocline = TRUE` (default). The thermocline is calculated by rLakeAnalyzer, and is the depth/elevation at which the largest change in temperature occurs in the sampled water column. If no thermocline is detected, as defined by `rLakeAnalyzer::thermo.depth()`, nothing is plotted.</li>
+<li>Choose whether to include only active sites (default) or all sites that have been monitored via `active`. </li>
+<li>Add gridlines on the y, x or both axes.</li>
+<li>Choose palette. Current enabled themes are 'viridis' (yellow - green - blue), and built in continuous color patterns in RColorBrewer. If you prefer other palettes, I can add those too. The only thing I'm trying to avoid is creating the palette manually, since number 1-m bins varies by site and across years. More info on built in ggplot scales can be found here: <a href="https://ggplot2-book.org/scales-colour">https://ggplot2-book.org/scales-colour</a>. </li>
+<li>Choose position of legend via `legend_position`. If you don't want to show the legend, `legend_position = 'none'`.
+<li>Include site name as plot title (title = TRUE). Only enabled when 1 site is selected. Otherwise site names will be in the facets.
+<li> Plot temperature in F via `parameter = "Temp_F"`.</li>
+</ul>
+
+<details><summary = 'drop'>Continuous RColorBrewer palettes are below. Note that there are only as many colors as shown. </summary>
+```{r }
+RColorBrewer::display.brewer.all(type = 'div')
+RColorBrewer::display.brewer.all(type = 'seq')
+
+```
+</details><br>
+
+<details open><summary class='drop'>Simple plots</summary>
+<p class = 'fxn'>Plot temperature (in F) for Upper Hadlock for years 2013 - 2023 corrected by elevation with thermocline plotted as black lines, with gridlines on y. </p>
+```{r message = FALSE, warning = FALSE}
+plotLakeProfile(site = "ACUHAD", parameter = "Temp_F", depth_type = 'elev', 
+                years = 2013:2023, gridlines = "grid_y")
+
+```
+
+<p class = 'fxn'>Plot temp (in C) using raw sample depth (default) for all LNETN lakes sampled in 2023.</p>
+```{r message = FALSE, warning = FALSE}
+plotLakeProfile(park = "LNETN", parameter = "Temp_C", years = 2023, palette = "Spectral")
+
+```
+
+<p class = 'fxn'>Plot temperature for Eagle Lake for years 2006 - 2023 with raw sample depth. Note that we can go back to 2006 because we're using raw sample depth instead of elevation.</p>
+```{r message = FALSE, warning = FALSE}
+plotLakeProfile(site = "ACEAGL", parameter = "Temp_C", depth_type = 'raw', 
+                years = 2006:2023)
+
+```
+
+<p class = 'fxn'>Same plot as above, but with no plot title or thermocline. 
+```{r message = FALSE, warning = FALSE}
+plotLakeProfile(site = "ACEAGL", parameter = "Temp_C", depth_type = 'raw', 
+                years = 2006:2023, plot_title = FALSE, plot_thermocline = F)
+
+```
+
+<p class = 'fxn'>Plot temperature for all ACAD lakes sampled in 2023 and raw sample depth. </p>
+```{r message = FALSE, warning = FALSE}
+lakes23 <- c("ACBUBL", "ACEAGL", "ACECHO", "ACJORD", "ACLONG", "ACROUN", 
+             "ACSEAL", "ACUBRK", "ACUHAD", "ACWHOL")
+plotLakeProfile(park = "ACAD", site = lakes23, parameter = "Temp_C", 
+                depth_type = 'raw', years = 2023)
+
+```
+
+<p class = 'fxn'>Plot DO all ACAD lakes sampled in 2023 and raw sample depth, using reversed RdYlBu palette. Temperature thermocline is also included as black lines.</p>
+```{r message = FALSE, warning = FALSE}
+plotLakeProfile(park = "ACAD", site = lakes23, 
+                parameter = "DOsat_pct", depth_type = 'raw', years = 2023, 
+                palette = 'RdYlBu', color_rev = TRUE)
+
+```
+
+<p class = 'fxn'>Plot specific conductance for Seal Cove Pond from 2013 to 2023 and sample elevation. Uses spectral palette by default and adds site name as title by default. Thermocline is also plotted as default. </p>
+```{r message = FALSE, warning = FALSE}
+plotLakeProfile(site = "ACSEAL", parameter = "SpCond_uScm", 
+                depth_type = 'elev', years = 2013:2023)
+
+```
+
+<p class = 'fxn'>Plot pH for Jordan Pond from 2013 to 2023 and sample elevation, using reversed spectral palette. </p>
+```{r message = FALSE, warning = FALSE}
+plotLakeProfile(site = "ACJORD", parameter = "pH", 
+                depth_type = 'elev', years = 2013:2023, 
+                color_rev = TRUE)
+
+```
+
+<p class = 'fxn'>Plot pH for all ACAD lakes sampled in 2022 and 2023 and raw sample depth, using reversed RdYlBu palette. </p>
+```{r message = FALSE, warning = FALSE}
+plotLakeProfile(park = "ACAD", site = c("ACBUBL", "ACEAGL", "ACECHO", "ACJORD", "ACLONG", "ACSEAL", 
+                                        "ACUHAD", "ACWHOL"), 
+                parameter = "pH", depth_type = 'raw', years = 2022:2023, 
+                palette = 'RdYlBu', color_rev = TRUE)
+
+```
+
+</details>
+<br>
+
+<details open><summary class='drop'>Combining plots</summary>
+<p class = 'fxn'>Combine plots for temp, DO, pH, and conductance in Bubble Pond for 2023 using the `cowplot` package.</p>
+To minimize typing, I define the parameters I wanted at the beginning. This allows you to adjust the parameters once (i.e., change site), and run through the rest of the code without having to edit it. I also only included the plot title on the first figure, and turned it off for the rest.
+
+The `cowplot` package must be installed to use this code. Install the package via `install.packages('cowplot')`. There are other packages to combine plots, including `grid` and `gridExtra`, and the function `ggarrage()` in `ggpubr`. I tend to start with cowplot, because it's easy to use and has a great <a href="https://wilkelab.org/cowplot/">help page</a>. If I really need to customize a plot (like custom spacing for each plot), then I use `grid/gridExtra`, which allows for more customization, but is a bit harder to work with.  
+```{r message = FALSE, warning = FALSE}
+library(cowplot)
+sitecode = "ACBUBL"
+sitename = getSites(site = sitecode)$SiteName
+year = 2023
+mon = 5:10
+depth = 'elev'
+ptitle = F
+
+tplot <- plotLakeProfile(site = sitecode, parameter = "Temp_C", depth_type = depth,
+                         years = year, months = mon, plot_title = ptitle)
+
+doplot <- plotLakeProfile(site = sitecode, parameter = "DOsat_pct", depth_type = depth,
+                          years = year, months = mon, color_rev = T, plot_title = ptitle)
+
+pHplot <- plotLakeProfile(site = sitecode, parameter = "pH", depth_type = depth,
+                          years = year, months = mon, palette = "RdYlBu", color_rev = T,
+                          plot_title = ptitle)
+
+cnplot <- plotLakeProfile(site = sitecode, parameter = "SpCond_uScm", depth_type = depth,
+                         years = year, months = mon, palette = 'RdBu',
+                         plot_title = ptitle)
+
+# Default settings
+plot_grid(tplot, doplot, pHplot, cnplot)
+```
+
+<p class = 'fxn'>Same plot as above, but customize plot widths, so DO and SpCond have more space for legend, and add title above the grid.</p>
+In this case, we're creating the plot grid with relative widths for each plot. Then we're combining the title and the plot grid in another grid, setting the title height to be much smaller than the plot grid. 
+
+Note that sitename and year are defined in code chunk above.
+```{r warning = F, message = F}
+title <- ggdraw() + draw_label(paste0(sitename, " (", year, ")"), size = 11, fontface = 'bold',
+                               x = 0.05, hjust = 0, vjust = 0) 
+pgrid <- plot_grid(tplot, doplot, pHplot, cnplot, rel_widths = c(0.9, 0.95, 0.85, 1)) # doesn't seem to be working 
+plot_grid(title, pgrid, ncol = 1, rel_heights = c(0.1, 1))
+```
+
+</details>
+
+#### plotPrecipDischarge()
+This function produces a plot with dual y-axes, one for precipitation and one for discharge. The x-axis is date. This function only works for one stream monitoring site at a time. Note that ggplot tends to have a lot of warnings that are hard to suppress, particularly for this plot, which has a daily value for precipitation and only monthly values for discharge. You're always going to get a message about that by using this function. Function currently only plots years where discharge is collected. Discharge is plotted as points and not lines, because discharge can change a lot between sampling events.
+
+<b style="color:red;">Note that the climateNETN package must be installed for this function to work, as it relies on downloading daily precipitation data.</b> To install run `pak::pkg_install("doi-nps/climateNETN")`
+
+<p class = 'fxn'>Plot Discharge for Mill Brook in MIMA for past 3 years using default colors and gridlines on the y-axis and english units. </p>
+```{r message=FALSE, warning=FALSE}
+plotPrecipDischarge(site = c("MIMASA"), years = 2021:2023, gridlines = "grid_y", units = "eng")
+
+```
+
+<p class = 'fxn'>Plot daily precipitation vs discharge for all ROVA sites in 2021, only accepting observations of"Excellent", "Good", or "Fair". </p>
+```{r message=FALSE, warning=FALSE}
+plotPrecipDischarge(park = "ROVA", years = 2021, rating = c("E", "G", "F"))
+
+```
+
+<p class = 'fxn'>Plot Discharge for Aunt Betty Inlet and Kebo Stream for 2024 using different colors. Note that this can be slow because has to download precip. data from NADP. LNETN parks download from a faster web service. </p>
+```{r message=FALSE, warning=FALSE}
+plotPrecipDischarge(site = c("ACABIN", "ACKEBO"), years = 2024, palette = c("cornflowerblue", "orange"))
+
+```
+
+
+### Summary Functions {.tabset}
+#### sumEvents()
+Summarize number of samples collected per park, site, month, and parameter. Resulting data frame show number of samples collected for each month, and whether the value is real (month) or censored (month_cens).
+
+<p class = 'fxn'>Summarize all events for ACAD for all years and active sites</p>
+```{r}
+acad_ev <- sumEvents(park = "ACAD")
+print_head(acad_ev)
+
+```
+
+<p class = 'fxn'>Summarize only lake events for ACAD for all years</p>
+```{r}
+acad_lk <- sumEvents(park = "ACAD", site_type = "lake")
+print_head(acad_lk)
+```
+
+<p class = 'fxn'>Summarize LNETN events only</p>
+```{r}
+lnetn <- sumEvents(park = "LNETN")
+print_head(lnetn)
+```
+

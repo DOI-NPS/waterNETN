@@ -1,0 +1,176 @@
+#' @include getSites.R
+#' @include getEvents.R
+#'
+#' @title getDischarge: query NETN water discharge data
+#'
+#' @description Queries NETN water discharge data by site, year, month. Only works with site_type = 'stream'.
+#'
+#' @importFrom dplyr filter left_join
+#'
+#' @param park Character or character vector. Combine data from all parks (by UnitCode) or one or more parks at a time. Valid inputs:
+#' \describe{
+#' \item{"all"}{Includes all parks in the network}
+#' \item{"LNETN"}{Includes all parks but ACAD}
+#' \item{"ACAD"}{Acadia NP only}
+#' \item{"MABI"}{Marsh-Billings-Rockefeller NHP only}
+#' \item{"MIMA"}{Minute Man NHP only}
+#' \item{"MORR"}{Morristown NHP only}
+#' \item{"ROVA"}{Roosevelt-Vanderbilt NHS only}
+#' \item{"SAGA"}{Saint-Gaudens NHP only}
+#' \item{"SAIR"}{Saugus Iron Works NHS only}
+#' \item{"SARA"}{Saratoga NHP only}
+#' \item{"WEFA"}{Weir Farm NHP only}}
+#'
+#' @param site Character or character vector. Filter on 6-letter SiteCode (e.g., "ACABIN", "MORRSA", etc.). Easiest way to pick a site. Defaults to "all".
+#'
+#' @param event_type Character. Select the event type (Project), can only choose one option. Valid inputs:
+#' \describe{
+#' \item{"all"}{All possible sampling events.}
+#' \item{"VS"}{Default. NETN Vital Signs monitoring events, which includes Projects named 'NETN_LS' and 'NETN+ACID'.}
+#' \item{"acid"}{Acidification monitoring events in Acadia.}
+#' \item{"misc"}{Miscellaneous sampling events.}
+#' }
+#'
+#' @param years Numeric. Years to query. Accepted values start at 2006.
+#'
+#' @param months Numeric. Months to query by number. Accepted values range from 1:12. Note that most of the
+#' events are between months 5 and 10, and these are set as the defaults.
+#'
+#' @param active Logical. If TRUE (Default) only queries actively monitored sites. If FALSE, returns all sites.
+#'
+#' @param method Character or character vector. Query data by DischargeMethod. Accepted values are c("Flowtracker", "Pygmy",
+#' "Flume", "No Measurement", "Rating curve estimate", "Timed float",
+#' "USGS Gage", "Visual estimate", "Volumetric")
+#'
+#' ' \describe{
+#' \item{"Flowtracker"}{Acoustic Doppler velocimeter}
+#' \item{"Pygmy"}{Cup-type current meter}
+#' \item{"Flume"}{Manufactured channel calibrated to quantify discharge based on the level of the water flowing through it}
+#' \item{"No Measurement"}{No discharge measurement taken}
+#' \item{"Rating curve estimate"}{Calculation of discharge based on previously established measurements correlating water volume to water level (stage)}
+#' \item{"Timed float"}{Timing a floating object to obtain velocity and cross sectional area}
+#' \item{"USGS Gage"}{Streamflow measurement station operated by the United States Geological Survey}
+#' \item{"Visual estimate"}{Qualitative method of assessing discharge based on observation of water conditions, including flow speed and surface characteristics, often used when more quantitative methods are not feasible}
+#' \item{"Volumetric"}{Collecting a known volume of water over a defined timeframe and using this data to calculate discharge}
+#' }
+#'
+#'
+#' @param rating Character or character vector. Filter on MeasurementRating. Can choose multiple. Default is all.
+#' \describe{
+#' \item{"all"}{All measurements}
+#' \item{"E"}{Excellent}
+#' \item{"G"}{Good}
+#' \item{"F"}{Fair}
+#' \item{"P"}{Poor}
+#' }
+#'
+#' @param output Specify if you want all fields returned (output = "verbose") or just the most important fields (output = "short"; default.)
+#'
+#' @return Data frame of Discharge data.
+#'
+#' @examples
+#' \dontrun{
+#' importData()
+#'
+#' # get discharge for all sites in SARA from 2022-2024
+#' sara <- getDischarge(park = "SARA", years = 2022:2024)
+#'
+#' # get discharge for ACAD streams in July 2023
+#' acad_dis <- getDischarge(park = "ACAD", years = 2023, months = 7)
+#'
+#' # get discharge measured with Flowtracker
+#' flow <- getDischarge(method = c("Flowtracker"))
+#'
+#' # get excellent rated measurements only for MIMA
+#' exc <- getDischarge(park = "MIMA", rating = "E")
+#' }
+#'
+#' @export
+
+getDischarge <- function(park = "all", site = "all", event_type = "VS",
+                         years = 2006:format(Sys.Date(), "%Y"),
+                         months = 5:10, active = TRUE, method = 'all',
+                         rating = 'all',
+                         output = c("short", "verbose")){
+
+  #-- Error handling --
+  park <- match.arg(park, several.ok = TRUE,
+                    c("all", "LNETN", "ACAD", "MABI", "MIMA", "MORR",
+                      "ROVA", "SAGA", "SAIR", "SARA", "WEFA"))
+  if(any(park == "LNETN")){park = c("MABI", "MIMA", "MORR", "ROVA", "SAGA", "SAIR", "SARA", "WEFA")} else {park}
+  #site_type <- match.arg(site_type)
+  event_type <- match.arg(event_type, c("all", "VS", "acid", "misc"))
+  stopifnot(class(years) %in% c("numeric", "integer"), years >= 2006)
+  stopifnot(class(months) %in% c("numeric", "integer"), months %in% c(1:12))
+  stopifnot(class(active) == "logical")
+  method <- match.arg(method, several.ok = TRUE,
+                      c("all", "Flowtracker", "Flume",
+                        "Pygmy", "No Measurement", "Rating curve estimate", "Timed float",
+                        "USGS Gage", "Visual estimate", "Volumetric"))
+  rating <- match.arg(rating, several.ok = T, c("all", "E", "G", "F", "P"))
+  output <- match.arg(output)
+
+  # Check if the views exist and stop if they don't
+  env <- if(exists("VIEWS_WQ")){VIEWS_WQ} else {.GlobalEnv}
+
+  tryCatch({dis <- get("Discharge_Data", envir = env)},
+           error = function(e){stop("Water views not found. Please import data.")}
+  )
+
+  # fix data types
+  # char fixes
+  chr_cols <- c("SubUnitCode", "SubUnitName", "ReachType", "FlowStatus", "DischargeMethod",
+                "VelocityFlag", "DischargeFlag", "MeasurementRating", "Comments")
+  dis[,chr_cols][dis[,chr_cols] == "NA"] <- NA_character_
+
+  # numeric fixes
+  num_cols <- c("TotalArea_sqft", "AvgVel_fs", "Discharge_cfs")
+  dis[,num_cols][dis[,num_cols] == "NA"] <- NA_real_
+  dis[,num_cols] <- apply(dis[,num_cols], 2, function(x) as.numeric(x))
+
+  # logic fixes
+  dis$IsEventCUI <- as.logical(dis$IsEventCUI)
+
+  # Add year, month and day of year column to dataset
+  dis$year <- as.numeric(substr(dis$EventDate, 1, 4))
+  dis$month <- as.numeric(substr(dis$EventDate, 6, 7))
+  dis$doy <- as.numeric(strftime(dis$EventDate, format = "%j"))
+
+  # Filter by site, years, and months to make data set small
+  sites <- force(getSites(park = park, site = site, site_type = 'stream', active = active))$SiteCode
+  evs <- force(getEvents(park = park, site = site, site_type = 'stream', active = active, event_type = event_type,
+                         years = years, months = months, output = 'verbose')) |>
+    select(SiteCode, SiteType, EventDate, EventCode, Project)
+
+  dis2 <- dis |> filter(SiteCode %in% sites)
+  dis3 <- left_join(evs, dis2, by = c("SiteCode", "EventDate", "EventCode", "Project"))
+
+  dis3$DischargeMethod[dis3$DischargeMethod %in% c("ACAD Pygmy", "LNETN Pygmy")] <- "Pygmy"
+  dis3$DischargeMethod[dis3$DischargeMethod %in% c("ACAD Flowtracker", "LNETN Flowtracker")] <- "Flowtracker"
+
+  # filter by method
+  dis4 <-
+  if(any(method == "all")){dis3
+  } else {filter(dis3, DischargeMethod %in% method)}
+
+  dis5 <-
+  if(output == "short"){dis4[,c("SiteCode", "SiteName", "UnitCode", "SubUnitCode",
+                                "EventDate","EventCode", "Project",
+                                "year", "month", "doy", "ReachType", "FlowStatus",
+                                "DischargeMethod", "TotalArea_sqft", "AvgVel_fs",
+                                "VelocityFlag", "Discharge_cfs", "DischargeFlag",
+                                "MeasurementRating", "Comments")]
+    } else {dis4}
+
+  dis6 <- if(any(rating == "all")){dis5
+    } else {dis5 |> filter(MeasurementRating %in% rating)}
+
+  if(nrow(dis6) == 0){
+    stop("Returned data frame with no records. Check your park, site, and site_type arguments.")}
+
+  return(data.frame(dis6))
+
+  }
+
+
+

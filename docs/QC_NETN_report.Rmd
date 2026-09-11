@@ -1,0 +1,211 @@
+---
+output:
+  html_document:
+    css: www/styles.css
+    anchor_sections: FALSE
+    includes:
+      in_header: "header_manual.html"
+
+params:
+  year_curr: 2024 # Current year of sampling
+  all_years: TRUE # If FALSE, only reports on year_curr; TRUE reports on all years; Not enabled yet. Currently all years.
+  
+---
+
+```{r setup, include = F}
+knitr::opts_chunk$set(echo = FALSE)
+options(knitr.kable.NA = '', scipen = 100)
+```
+
+```{r imports, include = FALSE}
+library(waterNETN)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(DT) # for notes datatable
+library(htmltools) # for tags with datatable
+
+importData()
+year_curr = params$year_curr
+year_range = if(params$all_years == TRUE){2006:year_curr} else {year_curr}
+```
+
+
+Water Quality Control checking for NETN `r paste(year_curr, collapse = ", ")` {.tabset .tabset-pills}
+---
+
+```{r, include = F, results = 'hide'}
+source("QC_NETN_report_functions.R")
+source('QC_NETN_report_compile.R')
+```
+
+## QC checks {.tabset}
+### Summary {.tabset}
+The table below documents Quality Control checks performed on NETN water quality and quantity data, along with number of records returned on each check. If any records were returned for a given check, the row is highlighted in the table, and a separate tab corresponding to that check will appear within its associated Data Tab. Yellow indicates a likely error, while blue indicates an anomalous record that requires further review to determine if it's an error or correct. 
+```{r}
+QC_check_table
+```
+
+### Sample Events {.tabset}
+```{r eval = comp_include, results = 'asis'}
+cat("#### Completedness {.tabset}", "\n\n")
+check_null_print(complete_kbl, 5, "Comp Parks")
+
+# Add site-completedness here
+```
+
+#### Compiled Notes {.tabset}
+```{r}
+notes_dt
+```
+
+#### Sampling Matrix {.tabset}
+```{r}
+samp_tab 
+```
+
+
+```{r eval = wqual_include, results = "asis"}
+cat("### Water Quality {.tabset}", "\n\n")
+```
+
+```{r eval = sonde_include, results = 'asis'}
+cat("#### Sonde Parameters {.tabset}", "\n\n")
+
+check_null_print(tbl_DO_mgL_99, 5, "DO 99pct")
+check_null_print(tbl_DO_mgL_01, 5, "DO 1pct")
+
+check_null_print(tbl_pH_99, 5, "pH 99pct")
+check_null_print(tbl_pH_01, 5, "pH 1pct")
+
+check_null_print(tbl_Temp_F_99, 5, "Temp 99pct")
+check_null_print(tbl_Temp_F_01, 5, "Temp 1pct")
+
+check_null_print(tbl_SpCond_uScm_99, 5, "SpCond 99pct")
+check_null_print(tbl_SpCond_uScm_01, 5, "SpCond 1pct")
+
+check_null_print(tbl_Turbidity_FNU_99, 5, "Turb 99pct")
+check_null_print(tbl_Turbidity_FNU_01, 5, "Turb 1pct")
+
+check_null_print(tbl_ChlA_EXO_ugL_99, 5, "ChlA 99pct")
+check_null_print(tbl_ChlA_EXO_ugL_01, 5, "ChlA 1pct")
+
+#++++ add remaining tables for each sonde parameter ++++
+## JAP Note: ChlA_EXO should not return LNETN values, but it does ##
+
+cat("\n\n")
+```
+
+```{r eval = lab_include, results = 'asis'}
+cat("#### Lab Parameters {.tabset}", "\n\n")
+
+check_null_print(tbl_ANC_ueqL_99, 5, "ANC 99pct")
+check_null_print(tbl_ANC_ueqL_01, 5, "ANC 1pct")
+
+check_null_print(tbl_TP_ugL_99, 5, "TP 99pct")
+check_null_print(tbl_TP_ugL_01, 5, "TP 1pct")
+
+check_null_print(tbl_TN_mgL_99, 5, "TN 99pct")
+check_null_print(tbl_TN_mgL_01, 5, "TN 1pct")
+
+check_null_print(tbl_DOC_mgL_99, 5, "DOC 99pct")
+check_null_print(tbl_DOC_mgL_01, 5, "DOC 1pct")
+
+check_null_print(tbl_ChlA_ugL_99, 5, "ChlA 99pct")
+check_null_print(tbl_ChlA_ugL_01, 5, "ChlA 1pct")
+
+#++++ add remaining tables for each lab parameter ++++
+
+cat("\n\n")
+```
+
+```{r eval = lab_v_sonde_include, results = 'asis', fig.height = 6, fig.width = 7}
+cat("#### Lab vs Sonde {.tabset}", "\n\n")
+
+# Details code makes it a drop down
+check_null_print(tbl_pH_10pct, 5, "pH diff")
+cat("##### pH diff fig {.tabset}", "\n\n")
+pctdiff_pH
+cat("\n\n")
+
+check_null_print(tbl_ChlA_EXO_ugL_10pct, 5, "ChlA diff")
+cat("##### ChlA diff fig {.tabset}", "\n\n")
+pctdiff_ChlA_EXO_ugL
+cat("\n\n")
+#++++ add remaining tables and figures for each sonde vs lab parameter ++++
+
+cat("\n\n")
+```
+
+```{r eval = qc_include, results = "asis"}
+cat("### Quality Control {.tabset}", "\n\n")
+```
+
+```{r eval = do899_include, results = 'asis'}
+check_null_print(do_kbl, 4, "DOSat")
+
+cat("\n\n")
+```
+
+```{r eval = qcsamp_include, results = 'asis', fig.height = 6, fig.width = 7}
+cat("#### QC Samples {.tabset}", "\n\n")
+
+check_null_print(tbl_pH_Lab_10pct_rep, 5, "pH diff")
+cat("##### pH diff fig {.tabset}", "\n\n")
+pctdiff_pH_Lab_rep
+cat("\n\n")
+
+check_null_print(tbl_ChlA_ugL_10pct_rep, 5, "ChlA diff")
+cat("##### ChlA diff fig {.tabset}", "\n\n")
+pctdiff_ChlA_ugL_rep
+cat("\n\n")
+```
+
+
+```{r blanks, eval = blank_include, results = 'asis'}
+cat("#### Blank Samples {.tabset}", "\n\n")
+
+check_null_print(blank_kbl, 5, "TN TP")
+cat("\n\n")
+
+check_null_print(blank_kbl2, 5, "pH")
+cat("\n\n")
+
+check_null_print(blank_kbl3, 5, "ChlA")
+cat("\n\n")
+```
+
+```{r eval = wquant_include, results = "asis"}
+cat("### Water Quantity {.tabset}", "\n\n")
+```
+
+```{r eval = secchi_include, results = 'asis'}
+cat("#### Secchi Depth {.tabset}", "\n\n")
+check_null_print(tbl_SDepth_m_99, 5, "SDepth 99pct")
+check_null_print(tbl_SDepth_m_01, 5, "SDepth 01pct")
+
+cat("\n\n")
+```
+
+```{r eval = lakelev_include, results = 'asis'}
+cat("#### Lake Level {.tabset}", "\n\n")
+check_null_print(tbl_WaterLevel_m_99, 5, "WLevel 99pct")
+check_null_print(tbl_WaterLevel_m_01, 5, "WLevel 01pct")
+cat("\n\n")
+```
+
+
+```{r eval = disch_include, results = 'asis'}
+cat("#### Discharge {.tabset}", "\n\n")
+check_null_print(tbl_Discharge_cfs_99, 5, "Disch. 99pct")
+check_null_print(tbl_Discharge_cfs_01, 5, "Disch. 01pct")
+check_null_print(tbl_disch_0, 5, "Disch. NAs")
+cat("\n\n")
+```
+
+```{r stage, eval = stage_include, results = 'asis'}
+cat("#### Stage {.tabset}", "\n\n")
+check_null_print(tbl_stage_0, 5, "Stage NAs")
+cat("\n\n")
+
+```
