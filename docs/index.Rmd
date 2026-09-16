@@ -63,7 +63,7 @@ parameter = c("ANC", "NH3", "pH", "Temp_C", "SDepth_m", "Discharge_csf", "Penetr
 ### Getting started {.tabset}
 
 #### Installation
-<h4><b>Step 1.</b> Install R, RStudio, and RTools in Software Center</h4>
+<h4><b>Step 1.</b> Install R, RStudio, and RTools in Company Portal</h4>
 <h4><b>Step 2.</b> Install pak package in R:</h4>
 ```{r, eval = F, class.source = "indent"}
 install.packages('pak')
@@ -71,7 +71,7 @@ install.packages('pak')
 <h4><b>Step 3.</b> Install waterNETN from github</h4>
 Note that whenever the `waterNETN` package is updated, you can rerun this code to install the latest version.
 ```{r, eval = F, class.source = "indent"}
-library(pal)
+library(pak)
 pkg_install("doi-nps/waterNETN")
 ```
 <h4><b>Step 4.</b> Load waterNETN R package</h4>
@@ -691,7 +691,7 @@ whol_ph
 </details>
 
 <details open><summary class='drop'>Multiple sites or params</summary>
-<p class = 'fxn'>Plot smoothed surface pH for active SARA streams over all years with 0.6 span and convert to plotly. Note that plotly figures don't seem to display in the current version of RStudio (2024.04.2), but they do render when knit with R Markdown to an html file. </p>
+<p class = 'fxn'>Plot smoothed surface pH for active SARA streams over all years with 0.6 span. </p>
 ```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(p)}
 p <- plotTrend(park = "SARA", site = c("SARASA", "SARASC", "SARASD"), 
                site_type = "stream", parameter = "pH", 

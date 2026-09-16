@@ -610,7 +610,7 @@ display:none;
 <div id="installation" class="section level4">
 <h4>Installation</h4>
 <h4>
-<b>Step 1.</b> Install R, RStudio, and RTools in Software Center
+<b>Step 1.</b> Install R, RStudio, and RTools in Company Portal
 </h4>
 <h4>
 <b>Step 2.</b> Install pak package in R:
@@ -621,7 +621,7 @@ display:none;
 </h4>
 <p>Note that whenever the <code>waterNETN</code> package is updated, you
 can rerun this code to install the latest version.</p>
-<pre class="r indent"><code>library(pal)
+<pre class="r indent"><code>library(pak)
 pkg_install(&quot;doi-nps/waterNETN&quot;)</code></pre>
 <h4>
 <b>Step 4.</b> Load waterNETN R package
@@ -5950,7 +5950,7 @@ Get chemistry data for all sites and all parameters in MABI from
 </p>
 <pre class="r"><code>mabi &lt;- getChemistry(park = &quot;MABI&quot;, years = 2021:2023)
 print_head(mabi)# top 6 rows</code></pre>
-<table class=" lightable-classic" style="font-size: 12px; color: black; font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;">
+<table class=" lightable-classic" style="font-size: 12px; font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -9294,7 +9294,7 @@ Get discharge measured with Flowtracker
 </p>
 <pre class="r"><code>flow &lt;- getDischarge(method = c(&quot;Flowtracker&quot;))
 print_head(flow)# top 6 rows</code></pre>
-<table class=" lightable-classic" style="font-size: 12px; font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;">
+<table class=" lightable-classic" style="font-size: 12px; color: black; font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -15471,7 +15471,7 @@ Get water level data for Bubble Pond.
 </p>
 <pre class="r"><code>bubl &lt;- getWaterLevel(site = &quot;ACBUBL&quot;, years = 2013:2023)
 print_head(bubl)# top 6 rows</code></pre>
-<table class=" lightable-classic" style="font-size: 12px; color: black; font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;">
+<table class=" lightable-classic" style="font-size: 12px; font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -17187,9 +17187,7 @@ Multiple sites or params
 </summary>
 <p class="fxn">
 Plot smoothed surface pH for active SARA streams over all years with 0.6
-span and convert to plotly. Note that plotly figures don’t seem to
-display in the current version of RStudio (2024.04.2), but they do
-render when knit with R Markdown to an html file.
+span.
 </p>
 <pre class="r"><code>p &lt;- plotTrend(park = &quot;SARA&quot;, site = c(&quot;SARASA&quot;, &quot;SARASC&quot;, &quot;SARASD&quot;), 
                site_type = &quot;stream&quot;, parameter = &quot;pH&quot;, 
