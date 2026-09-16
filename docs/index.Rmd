@@ -790,7 +790,7 @@ lnetn_c
 
 <p class = 'fxn'>Plot temperature for Eagle Lake for years 2006 - 2023 with raw sample depth. Note that we can go back to 2006 because we're using raw sample depth instead of elevation.</p>
 ```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(eag_c)}
-eag_c
+eag_c <- 
 plotLakeProfile(site = "ACEAGL", parameter = "Temp_C", depth_type = 'raw', 
                 years = 2006:2023)
 eag_c
