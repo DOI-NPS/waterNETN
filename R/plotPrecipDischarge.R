@@ -176,7 +176,8 @@ dp_plot <-
           panel.grid.minor.x = element_line(color = 'grey'))}}+
       scale_x_date(breaks = datebreaks, labels = scales::label_date("%b")) +
       theme(legend.position = legend_position, legend.title = element_blank()) +
-      labs(x = NULL)
+      labs(x = NULL,
+           alt = "Bar plot of monthly discharge over time compared with daily precipitation")
 
 
 return(#suppressWarnings(

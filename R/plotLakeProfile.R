@@ -347,7 +347,9 @@ plotLakeProfile <- function(park = "ACAD", site = "all", event_type = "VS",
       {if(!palette %in% 'viridis') scale_fill_distiller(palette = palette, direction = color_dir)} +
       {if(!palette %in% 'viridis') scale_color_distiller(palette = palette, direction = color_dir)} +
       # labels, themes
-      labs(x = NULL, y = ylab, color = param_label, fill = param_label, title = ptitle) +
+      labs(x = NULL, y = ylab, color = param_label, fill = param_label, title = ptitle,
+           alt = paste0("A heat map of lake profile data for ", param_label, "by elevation in ",
+                        paste0(unique(wcomb2$SiteName), collapse = ", "))) +
       {if(any(gridlines %in% c("grid_y", "both"))){
           theme(
             panel.grid.major.y = element_line(color = 'grey'),
@@ -380,7 +382,9 @@ plotLakeProfile <- function(park = "ACAD", site = "all", event_type = "VS",
         {if(!palette %in% 'viridis') scale_fill_distiller(palette = palette, direction = color_dir)} +
         {if(!palette %in% 'viridis') scale_color_distiller(palette = palette, direction = color_dir)} +
         # labels, themes
-        labs(x = NULL, y = ylab, color = param_label, fill = param_label, title = ptitle) +
+        labs(x = NULL, y = ylab, color = param_label, fill = param_label, title = ptitle,
+             alt = paste0("A heat map of lake profile data for ", param_label, " by raw depth in ",
+                          paste0(unique(wcomb2$SiteName), collapse = ", "))) +
         {if(any(gridlines %in% c("grid_y", "both"))){
           theme(
             panel.grid.major.y = element_line(color = 'grey'),

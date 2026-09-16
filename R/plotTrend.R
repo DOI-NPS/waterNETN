@@ -56,8 +56,8 @@
 #' @param active Logical. If TRUE (Default) only queries actively monitored sites. If FALSE, returns
 #' all sites.
 #'
-#' @param parameter Specify the parameter(s) to return.#' Note that "all" is not an accepted value, because there are too many to plot. Current accepted values are:\cr
-#'
+#' @param parameter Specify the parameter(s) to return.#' Note that "all" is not an accepted value, because there
+#' are too many to plot. Current accepted values are:\cr
 #'
 #'Chemistry
 #' \describe{
@@ -102,7 +102,6 @@
 #' \item{"WaterLevel_Feet"}{Value calculated by adding gage reading to datum elevation (decimal feet).}
 #' \item{"WaterLevel_m"}{Value calculated by adding gage reading to datum elevation (meters).}
 #' }
-#'
 #'
 #' @param include_censored Logical. If TRUE, the value column includes non-censored and censored values
 #' using the MDL/MRL/UQL values in the parameter flags. If the Flag column is not NA, that indicates
@@ -293,6 +292,8 @@ plotTrend <- function(park = "all", site = "all",
                              paste0(wdat$Parameter)
   )
 
+  params <- unique(wdat$param_label) # for alt text
+
   # join wdat with WQ thresholds, stored as a dataset in the package
   data("NETN_WQ_thresh")
   wdat2 <- tryCatch(left_join(wdat,
@@ -367,15 +368,16 @@ plotTrend <- function(park = "all", site = "all",
     ggplot(wdat2, aes(x = x_axis, y = Value, group = if(smooth == TRUE){SiteName} else{year},
                      color = SiteName, fill = SiteName, shape = censored)) +
       # layers
-      {if(smooth == TRUE) geom_smooth(aes(text = paste0("Site: ", SiteName, "<br>")),
+      {if(smooth == TRUE) geom_smooth(#aes(tooltip = paste0("Site: ", SiteName, "<br>")), # for eventual use in ggiraph
                                       method = 'loess', formula = 'y ~ x', se = F, span = span) } +
       {if(smooth == FALSE & any(layers %in% "lines"))
-        geom_line(aes(text = paste0("Site: ", SiteName, "<br>")))} +
+        geom_line(#aes(tooltip = paste0("Site: ", SiteName, "<br>")) # for eventual use in ggiraph
+                  )} +
       {if(any(layers %in% "points"))
-        geom_point(aes(shape = censored, #size = censored,
-                       text = paste0("Site: ", SiteName, "<br>",
-                                     "Parameter: ", param_label, "<br>",
-                                     "Value: ", round(Value, 1), "<br>")),
+        geom_point(aes(shape = censored), #size = censored,
+                       #tooltip = paste0("Site: ", SiteName, "<br>",
+                       #              "Parameter: ", param_label, "<br>",
+                       #              "Value: ", round(Value, 1), "<br>")),
                    alpha = 0.4)} +
       {if(any(layers %in% "points"))
         scale_shape_manual(values = c(19, 18), labels = c("Real", "Censored"), name = "legend")} +
@@ -409,7 +411,8 @@ plotTrend <- function(park = "all", site = "all",
       scale_y_continuous(n.breaks = 8) +
       # labels
       #labs(x = "Year", y = ylab) +
-      labs(x = NULL, y = ylabel) +
+      labs(x = NULL, y = ylabel,
+           alt = paste0("Trend plot for ", paste0(params, collapse = ", "))) +
       guides(fill = guide_legend(order = 1),
              color = guide_legend(order = 1),
              shape = guide_legend(order = 1))
@@ -417,12 +420,13 @@ plotTrend <- function(park = "all", site = "all",
       ggplot(wdat2, aes(x = x_axis, y = Value, group = if(smooth == TRUE){SiteName} else{year},
                         color = SiteName, fill = SiteName)) +
       #layers
-      {if(smooth == TRUE) geom_smooth(aes(text = paste0("Site: ", SiteName, "<br>")),
+      {if(smooth == TRUE) geom_smooth(#aes(tooltip = paste0("Site: ", SiteName, "<br>")), # for eventual use in ggiraph
                                       method = 'loess', formula = 'y ~ x', se = F, span = span) } +
-      {if(smooth == FALSE & any(layers %in% "lines")) geom_line(aes(text = paste0("Site: ", SiteName, "<br>")))} +
-      {if(any(layers %in% "points")) geom_point(aes(text = paste0("Site: ", SiteName, "<br>",
-                                                                  "Parameter: ", param_label, "<br>",
-                                                                  "Value: ", round(Value, 1), "<br>")),
+      {if(smooth == FALSE & any(layers %in% "lines")) geom_line(#aes(tooltip = paste0("Site: ", SiteName, "<br>")) #ggiraph
+                                                                )} +
+      {if(any(layers %in% "points")) geom_point(#aes(tooltip = paste0("Site: ", SiteName, "<br>", # for eventual use in ggiraph
+                                                #                  "Parameter: ", param_label, "<br>",
+                                                #                  "Value: ", round(Value, 1), "<br>")),
                                                 alpha = 0.4, size = 2.5)} +
       {if(threshold == TRUE){geom_hline(aes(yintercept = UpperThreshold, linetype = "Upper WQ Threshold"), lwd = 0.7)}} +
       {if(threshold == TRUE){geom_hline(aes(yintercept = LowerThreshold, linetype = "Lower WQ Threshold"), lwd = 0.7)}} +
@@ -440,7 +444,6 @@ plotTrend <- function(park = "all", site = "all",
       {if(any(gridlines %in% c("grid_x", "both"))){
           theme(panel.grid.major.x = element_line(color = 'grey'))}} + #,
                 #panel.grid.minor.x = element_line(color = 'grey'))}}+
-      # color palettes
       {if(any(vir_pal == "viridis")) scale_color_viridis_d(option = palette)} +
       {if(any(vir_pal == "viridis")) scale_fill_viridis_d(option = palette)} +
       {if(any(vir_pal == "colbrew")) scale_fill_manual(values = pal)} +
@@ -452,7 +455,8 @@ plotTrend <- function(park = "all", site = "all",
       scale_y_continuous(n.breaks = 8) +
       # labels
       #labs(x = "Year", y = ylab) +
-      labs(x = NULL, y = ylabel) +
+      labs(x = NULL, y = ylabel,
+           alt = paste0("Trend plot for ", paste0(params, collapse = ", "))) +
       guides(fill = guide_legend(order = 1),
              color = guide_legend(order = 1),
              shape = guide_legend(order = 1))

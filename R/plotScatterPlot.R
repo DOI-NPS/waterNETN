@@ -395,7 +395,8 @@ plotScatterPlot <- function(park = "all", site = "all",
       scale_y_continuous(n.breaks = 8) +
       # labels
       #labs(x = "Year", y = ylab) +
-      labs(x = x_lab, y = y_lab) +
+      labs(x = x_lab, y = y_lab,
+           alt = paste0("Scatterplot of ", y_lab, " (y variable) versus ", x_lab, " (x variable)")) +
       guides(fill = guide_legend(order = 1),
              color = guide_legend(order = 1),
              shape = guide_legend(order = 1))

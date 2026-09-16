@@ -432,27 +432,29 @@ plotWaterBands <- function(park = "all", site = "all",
                             aes(ymin = lower, ymax = upper, x = mon,
                                 fill = metric_type,
                                 #color = metric_type,
-                                group = metric_type,
-                                text = paste0("Site: ", SiteName, "<br>",
-                                              "Month: ", mon, "<br>",
-                                              "Parameter: ", param_label, "<br>",
-                                              "Distribution: ", as.numeric(gsub("\\D", "", distrib)), "%", "<br>",
-                                              "Historic Upper Value: ", round(upper, 1), "<br>",
-                                              "Historic Lower Value: ", round(lower, 1), "<br>")))+
+                                group = metric_type#,
+                                # tooltip = paste0("Site: ", SiteName, "<br>", # for eventual use in ggiraph
+                                #                  "Month: ", mon, "<br>",
+                                #                  "Parameter: ", param_label, "<br>",
+                                #                  "Distribution: ", as.numeric(gsub("\\D", "", distrib)), "%", "<br>",
+                                #                  "Historic Upper Value: ", round(upper, 1), "<br>",
+                                #                  "Historic Lower Value: ", round(lower, 1), "<br>")
+                                )) +
                 # geom_line(data = wdat_hist2, aes(y = lower, color = metric_type, group = metric_type)) +
                 # geom_line(data = wdat_hist2, aes(y = upper, color = metric_type, group = metric_type)) +
                 geom_line(data = wdat_med,
-                          aes(y = median_val, x = mon, color = metric_type, group = metric_type,
-                              text = paste0("Site: ", SiteName, "<br>",
-                                            "Month: ", mon, "<br>",
-                                            "Parameter: ", param_label, "<br>",
-                                            "Historic Median: ", round(median_val, 1), "<br>")), lwd = 0.7) +
+                          aes(y = median_val, x = mon, color = metric_type, group = metric_type #,
+                              # tooltip = paste0("Site: ", SiteName, "<br>", # for eventual use in ggiraph
+                              #                  "Month: ", mon, "<br>",
+                              #                  "Parameter: ", param_label, "<br>",
+                              #                  "Historic Median: ", round(median_val, 1), "<br>")
+                              ), lwd = 0.7) +
                 geom_point(data = wdat_curr,
                            aes(y = Value, x = mon, color = metric_type, group = metric_type,
-                               text = paste0("Site: ", SiteName, "<br>",
-                                             "Month: ", mon, "<br>",
-                                             "Parameter: ", param_label, "<br>",
-                                             "Current Value: ", round(Value, 1), "<br>"))) +
+                               tooltip = paste0("Site: ", SiteName, "<br>",
+                                                "Month: ", mon, "<br>",
+                                                "Parameter: ", param_label, "<br>",
+                                                "Current Value: ", round(Value, 1), "<br>"))) +
                 scale_color_manual(values = plot_values,
                                    breaks = plot_breaks,
                                    labels = plot_labels,
@@ -480,7 +482,9 @@ plotWaterBands <- function(park = "all", site = "all",
                 # Labels/Themes/axes
                 scale_x_discrete(breaks = xaxis_breaks, drop = F, expand = c(0.04,0.04)) +
                 scale_y_continuous(n.breaks = 8) +
-                labs(y = ylab, x = NULL, title = NULL) +
+                labs(y = ylab, x = NULL, title = NULL,
+                     alt = paste0("Distribution of current verses historic values shown as increasingly darkened blue bands that cover",
+                     " historic min and max, 95% range, and middle 50% distributions respectively, and current values for each month as points. ")) +
                 theme(axis.title.y = element_text(size = 10),
                       panel.background = element_rect(color = '#696969', fill = 'white', linewidth = 0.4),
                       axis.line.x = element_line(color = "#696969", linewidth = 0.4),
