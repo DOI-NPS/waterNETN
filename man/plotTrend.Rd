@@ -66,7 +66,8 @@ events are between months 5 and 10, and these are set as the defaults.}
 \item{active}{Logical. If TRUE (Default) only queries actively monitored sites. If FALSE, returns
 all sites.}
 
-\item{parameter}{Specify the parameter(s) to return.#' Note that "all" is not an accepted value, because there are too many to plot. Current accepted values are:\cr
+\item{parameter}{Specify the parameter(s) to return.#' Note that "all" is not an accepted value, because there
+are too many to plot. Current accepted values are:\cr
 
 Chemistry
 \describe{

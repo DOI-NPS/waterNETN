@@ -30,7 +30,7 @@ Note: Not sure if this function is fully functional (depends on whether database
 <li>plotScatterPlot: plots a scatterplot of 2 water quality or quantity metrics.</li>    
 <li>plotTrend: plots a water metric over time and includes option to add loess smoother.</li>           
 <li>plotWaterBands: plots current year of water in comparison to the distribution of water data collected in specified previous years.</li>      
-
+<br>
 <li>theme_WQ: custom ggplot2 theme for plotting NETN water data.</li>  
 </ul>
 
