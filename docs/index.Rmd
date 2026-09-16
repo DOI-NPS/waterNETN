@@ -523,70 +523,102 @@ Currently you can only specify one parameter at a time. Values that exceed water
 You can now add gridlines to the plot via the gridlines argument, and Temp in F via "Temp_F" argument. 
 
 <p class = 'fxn'>Plot pH in Jordan Pond for 2023 with gridlines on the y-axis</p>
-```{r message = FALSE, warning = FALSE}
-plotWaterBands(site = "ACJORD", year_curr = 2023, years_historic = 2006:2022, 
-  parameter = "pH", legend_position = 'right', gridlines = 'grid_y')
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(pjord_ph)}
+pjord_ph <- 
+  plotWaterBands(site = "ACJORD", year_curr = 2023, years_historic = 2006:2022, 
+    parameter = "pH", legend_position = 'right', gridlines = 'grid_y')
+
+pjord_ph
 ```
 
 <p class = 'fxn'>Plot TN in Jordan Pond for 2023, including censored and gridlines on both x and y axes</p>
-```{r message = FALSE, warning = FALSE}
-plotWaterBands(site = "ACJORD", year_curr = 2023, years_historic = 2006:2022,
-  parameter = "TN_mgL", legend_position = 'right', include_censored = T, gridlines = "both")
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(pjord_tn)}
+pjord_tn <- 
+  plotWaterBands(site = "ACJORD", year_curr = 2023, years_historic = 2006:2022,
+    parameter = "TN_mgL", legend_position = 'right', include_censored = T, gridlines = "both")
+
+pjord_tn
 ```
 
 <p class = 'fxn'>Same as above, but drop threshold lines and add gridlines on x-axis</p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(pjord_tn2)}
+pjord_tn2 <- 
 plotWaterBands(site = "ACJORD", year_curr = 2023, years_historic = 2006:2022,
   parameter = "TN_mgL", legend_position = 'right', include_censored = T, threshold = F, gridlines = "grid_x")
+
+pjord_tn2
 ```
 
 <p class = 'fxn'>Plot TN in Kroma Kill in SARA in 2023, with no gridlines (Default)</p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(kroma)}
+kroma <- 
 plotWaterBands(site = "SARASA", year_curr = 2023, years_historic = 2006:2022, parameter = "TN",
                legend_position = 'right')
+
+kroma
 ```
 
 #### plotScatterPlot()
 This function produces points or loess smoothed lines of 2 variables, filtered on park, site, year, month, and 2 parameters. Works with lab chemistry, Sonde in situ, discharge, secchi depth, water level, and light penetration ratio. If multiple sites are specified, they will be plotted on the same figure, unless facet_site = T. Note that if you specify a site and parameter combination that doesn't exist (e.g., a stream site and a parameter only collected in lakes), the function will return an error message instead of an empty plot. Censored values are not permitted in this function.
 
 <p class = 'fxn'>Plot Temp vs DO for ROVA all years on same figure</p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(rova_scat)}
+rova_scat <- 
 plotScatterPlot(park = "ROVA", parameters = c("DO_mgL", "Temp_C"),
   palette = 'viridis', facet_site = F, legend_position = "bottom")
+
+rova_scat
 
 ```
 
 <p class = 'fxn'>Plot Secchi depth vs. surface DOC in Eagle Lake, Jordan Pond, Echo Lake, and Witch Hole Pond</p>
-```{r message = FALSE, warning = FALSE}
-plotScatterPlot(site = c("ACEAGL", "ACJORD", "ACWHOL", "ACECHO"), parameters = c("SDepth_m", "DOC_mgL"),
-  span = 0.9, facet_site = F, legend_position = 'bottom', palette = c("red", "orange", "purple4", "blue"))
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(secchi_doc)}
+secchi_doc <- 
+plotScatterPlot(site = c("ACEAGL", "ACJORD", "ACWHOL", "ACECHO"), 
+                parameters = c("SDepth_m", "DOC_mgL"),
+                span = 0.9, facet_site = F, legend_position = 'bottom', 
+                palette = c("red", "orange", "purple4", "blue"))
+secchi_doc
 ```
 
 <p class = 'fxn'>Same as above, but points only </p>
-```{r message = FALSE, warning = FALSE}
-plotScatterPlot(site = c("ACEAGL", "ACJORD", "ACWHOL", "ACECHO"), parameters = c("SDepth_m", "DOC_mgL"),
-  span = 0.9, facet_site = F, legend_position = 'bottom', layers = 'points')
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(secchi_doc)}
+plotScatterPlot(site = c("ACEAGL", "ACJORD", "ACWHOL", "ACECHO"), 
+                parameters = c("SDepth_m", "DOC_mgL"),
+                span = 0.9, facet_site = F, legend_position = 'bottom', 
+                layers = 'points')
 ```
 
 <p class = 'fxn'> Plot smoothed discharge vs. specific conductance for the Pogue Brook using span of 0.9, and green symbols. </p>
-```{r message = FALSE, warning = FALSE}
-plotScatterPlot(site = "MABISA", parameters = c("SpCond_uScm", "Discharge_cfs"), span = 0.9, palette = c("forestgreen"))
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(mabi_dsc)}
+mabi_dsc <- 
+plotScatterPlot(site = "MABISA", parameters = c("SpCond_uScm", "Discharge_cfs"), 
+                span = 0.9, palette = c("forestgreen"))
+mabi_dsc
 ```
 
 <p class = 'fxn'> Plot smoothed discharge vs. specific conductance for SARA streams using span of 0.9. </p>
-```{r message = FALSE, warning = FALSE}
-plotScatterPlot(park = "SARA", parameters = c("SpCond_uScm", "Discharge_cfs"), span = 0.9, facet_site = F,
-  legend_position = 'bottom', palette = c("blue", "orange"))
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(sara_scd)}
+sara_scd <- 
+plotScatterPlot(park = "SARA", parameters = c("SpCond_uScm", "Discharge_cfs"), 
+                span = 0.9, facet_site = F, legend_position = 'bottom', 
+                palette = c("blue", "orange"))
+
+sara_scd
 ```
 
 <p class = 'fxn'> Same as above, but faceted by site.</p>
-```{r message = FALSE, warning = FALSE}
-plotScatterPlot(park = "SARA", parameters = c("SpCond_uScm", "Discharge_cfs"), span = 0.9, facet_site = T)
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(sara_scd)}
+plotScatterPlot(park = "SARA", parameters = c("SpCond_uScm", "Discharge_cfs"), 
+                span = 0.9, facet_site = T)
 ```
 
 <p class = 'fxn'>Plot TN vs discharge in SARA streams</p>
-```{r message = FALSE, warning = FALSE}
-plotScatterPlot(park = "SARA", parameters = c("TN_mgL", "Discharge_cfs"), span = 0.9, facet_site = F)
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(sara_tnd)}
+sara_tnd <- 
+plotScatterPlot(park = "SARA", parameters = c("TN_mgL", "Discharge_cfs"), 
+                span = 0.9, facet_site = F)
+sara_tnd
 ```
 
 #### plotTrend()
@@ -610,40 +642,49 @@ There are several arguments to customize plots.
 
 <details open><summary class='drop'>Single site; single parameter</summary>
 <p class = 'fxn'>Plot non-smoothed surface pH for Eagle Lake for all years with gridlines on y-axis. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(eag_ph)}
+eag_ph <- 
 plotTrend(site = "ACEAGL", parameter = "pH", palette = 'mako', years = 2021:2023) + theme_WQ()
 
+eag_ph
 ```
 
 <p class = 'fxn'>Plot smoothed surface pH for Eagle Lake for past 3 years using default span of 0.3 and by default not including the legend. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(eag_ph)}
 plotTrend(site = "ACEAGL", parameter = "pH", palette = 'dimgrey', years = 2021:2023)
 
 ```
 <p class = 'fxn'>Plot smoothed surface pH for Eagle Lake and Jordan Pond for all years, with turbo palette, and using span of 0.75. </p>
-```{r message = FALSE, warning = FALSE}
-plotTrend(site = c("ACEAGL", "ACJORD"), parameter = "pH", span = 0.75, palette = "turbo", legend_position = 'bottom')
-
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(eag_jord)}
+eag_jord <- 
+  plotTrend(site = c("ACEAGL", "ACJORD"), parameter = "pH", span = 0.75, 
+            palette = "turbo", legend_position = 'bottom')
+eag_jord
 ```
 
 <p class = 'fxn'>Plot smoothed Secchi Depth in Jordan Pond for all years, including the legend, different color palette, and using span of 0.75. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(jord_sec)}
+jord_sec <- 
 plotTrend(site = "ACJORD", parameter = "SDepth_m", span = 0.75, palette = 'mako')
 
+jord_sec
 ```
 
 <p class = 'fxn'>Plot unsmoothed SO4 in Witch Hole Pond for all years, including censored values. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(whol_so4)}
+whol_so4 <- 
 plotTrend(site = "ACWHOL", parameter = "SO4_ueqL", 
           smooth = F, include_censored = TRUE, legend_position = 'bottom')
 
+whol_so4
 ```
 
 <p class = 'fxn'>Plot unsmoothed line only for pH in Witch Hole Pond for all years. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(whol_ph)}
+whol_ph <- 
 plotTrend(site = "ACWHOL", parameter = "pH", layers = "lines", 
           smooth = F, legend_position = 'none')
-
+whol_ph
 ```
 
 
@@ -651,46 +692,54 @@ plotTrend(site = "ACWHOL", parameter = "pH", layers = "lines",
 
 <details open><summary class='drop'>Multiple sites or params</summary>
 <p class = 'fxn'>Plot smoothed surface pH for active SARA streams over all years with 0.6 span and convert to plotly. Note that plotly figures don't seem to display in the current version of RStudio (2024.04.2), but they do render when knit with R Markdown to an html file. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(p)}
 p <- plotTrend(park = "SARA", site = c("SARASA", "SARASC", "SARASD"), 
                site_type = "stream", parameter = "pH", 
                legend_position = "right", span = 0.6)
-
+p
 ```
 
 <p class = 'fxn'>Plot smoothed surface Specific Conductance for all MIMA streams over all years with 0.6 span. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(mima_sc)}
+mima_sc <- 
 plotTrend(park = "MIMA", site_type = "stream", 
-          parameter = "SpCond_uScm", legend_position = "right", span = 0.6, palette = c("blue", "orange", "green3"))
+          parameter = "SpCond_uScm", legend_position = "right", span = 0.6, 
+          palette = c("blue", "orange", "green3"))
+mima_sc
 
 ```
 
 <p class = 'fxn'>Plot non-smoothed surface of multiple Sonde parameters for all MIMA streams over all years with 0.6 span. Note that here I used Temp_F. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(mima_sonde)}
 params <- c("Temp_F", "SpCond_uScm", "DOsat_pct", "pH")
+mima_sonde <- 
 plotTrend(park = "MIMA", site_type = "stream", 
           parameter = params, legend_position = "right", span = 0.6)
-
+mima_sonde
 ```
 
 <p class = 'fxn'>Plot smoothed surface Secchi Depth, Specific Conductance, pH, and DOC in Jordan Pond for all years, including the legend, different color palette, and using span of 0.75. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(jord4)}
+jord4 <- 
 plotTrend(site = "ACJORD", parameter = c("SDepth_m", "SpCond_uScm", "pH", "DOC_mgL"), 
           span = 0.75, palette = 'mako')
-
+jord4
 ```
 
 <p class = 'fxn'>Plot smoothed surface water depth in the Pogue for all years, including a different color palette, and using span of 0.75. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(pogue_wl)}
+pogue_wl <- 
 plotTrend(site = "MABIPA", parameter = "WaterLevel_Feet", span = 0.75, 
           palette = 'mako')
-
+pogue_wl
 ```
 
 <p class = 'fxn'>Plot smoothed TN, TP and SO4 in all MORR sites for all years, including the legend, different color palette, and using span of 0.6. Thresholds, where they exist,  plot by default.</p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(morr)}
+morr <- 
 plotTrend(park = "MORR", parameter = c("TN_mgL", "TP_ugL", "SO4_ueqL"), 
           span = 0.6, legend_position = 'bottom', palette = 'plasma')
+morr
 ```
 
 </details>
@@ -725,71 +774,79 @@ RColorBrewer::display.brewer.all(type = 'seq')
 
 <details open><summary class='drop'>Simple plots</summary>
 <p class = 'fxn'>Plot temperature (in F) for Upper Hadlock for years 2013 - 2023 corrected by elevation with thermocline plotted as black lines, with gridlines on y. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(uhad_f)}
+uhad_f <- 
 plotLakeProfile(site = "ACUHAD", parameter = "Temp_F", depth_type = 'elev', 
                 years = 2013:2023, gridlines = "grid_y")
-
+uhad_f
 ```
 
 <p class = 'fxn'>Plot temp (in C) using raw sample depth (default) for all LNETN lakes sampled in 2023.</p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(lnetn_c)}
+lnetn_c <- 
 plotLakeProfile(park = "LNETN", parameter = "Temp_C", years = 2023, palette = "Spectral")
-
+lnetn_c
 ```
 
 <p class = 'fxn'>Plot temperature for Eagle Lake for years 2006 - 2023 with raw sample depth. Note that we can go back to 2006 because we're using raw sample depth instead of elevation.</p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(eag_c)}
+eag_c
 plotLakeProfile(site = "ACEAGL", parameter = "Temp_C", depth_type = 'raw', 
                 years = 2006:2023)
-
+eag_c
 ```
 
 <p class = 'fxn'>Same plot as above, but with no plot title or thermocline. 
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(eag_c)}
 plotLakeProfile(site = "ACEAGL", parameter = "Temp_C", depth_type = 'raw', 
                 years = 2006:2023, plot_title = FALSE, plot_thermocline = F)
 
 ```
 
 <p class = 'fxn'>Plot temperature for all ACAD lakes sampled in 2023 and raw sample depth. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(plot_23C)}
 lakes23 <- c("ACBUBL", "ACEAGL", "ACECHO", "ACJORD", "ACLONG", "ACROUN", 
              "ACSEAL", "ACUBRK", "ACUHAD", "ACWHOL")
+plot_23C <- 
 plotLakeProfile(park = "ACAD", site = lakes23, parameter = "Temp_C", 
                 depth_type = 'raw', years = 2023)
-
+plot_23C
 ```
 
 <p class = 'fxn'>Plot DO all ACAD lakes sampled in 2023 and raw sample depth, using reversed RdYlBu palette. Temperature thermocline is also included as black lines.</p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(plot_23do)}
+plot_23do <- 
 plotLakeProfile(park = "ACAD", site = lakes23, 
                 parameter = "DOsat_pct", depth_type = 'raw', years = 2023, 
                 palette = 'RdYlBu', color_rev = TRUE)
-
+plot_23do
 ```
 
 <p class = 'fxn'>Plot specific conductance for Seal Cove Pond from 2013 to 2023 and sample elevation. Uses spectral palette by default and adds site name as title by default. Thermocline is also plotted as default. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(scove_sc)}
+scove_sc <- 
 plotLakeProfile(site = "ACSEAL", parameter = "SpCond_uScm", 
                 depth_type = 'elev', years = 2013:2023)
-
+scove_sc
 ```
 
 <p class = 'fxn'>Plot pH for Jordan Pond from 2013 to 2023 and sample elevation, using reversed spectral palette. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(jord_ph)}
+jord_ph <- 
 plotLakeProfile(site = "ACJORD", parameter = "pH", 
                 depth_type = 'elev', years = 2013:2023, 
                 color_rev = TRUE)
-
+jord_ph
 ```
 
 <p class = 'fxn'>Plot pH for all ACAD lakes sampled in 2022 and 2023 and raw sample depth, using reversed RdYlBu palette. </p>
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = get_alt_text(p223)}
+p223 <- 
 plotLakeProfile(park = "ACAD", site = c("ACBUBL", "ACEAGL", "ACECHO", "ACJORD", "ACLONG", "ACSEAL", 
                                         "ACUHAD", "ACWHOL"), 
                 parameter = "pH", depth_type = 'raw', years = 2022:2023, 
                 palette = 'RdYlBu', color_rev = TRUE)
-
+p223
 ```
 
 </details>
@@ -800,7 +857,7 @@ plotLakeProfile(park = "ACAD", site = c("ACBUBL", "ACEAGL", "ACECHO", "ACJORD", 
 To minimize typing, I define the parameters I wanted at the beginning. This allows you to adjust the parameters once (i.e., change site), and run through the rest of the code without having to edit it. I also only included the plot title on the first figure, and turned it off for the rest.
 
 The `cowplot` package must be installed to use this code. Install the package via `install.packages('cowplot')`. There are other packages to combine plots, including `grid` and `gridExtra`, and the function `ggarrage()` in `ggpubr`. I tend to start with cowplot, because it's easy to use and has a great <a href="https://wilkelab.org/cowplot/">help page</a>. If I really need to customize a plot (like custom spacing for each plot), then I use `grid/gridExtra`, which allows for more customization, but is a bit harder to work with.  
-```{r message = FALSE, warning = FALSE}
+```{r message = FALSE, warning = FALSE, fig.alt = paste0("Plots in order of appearance ", get_alt_text(tplot), " ", get_alt_text(doplot), " ", get_alt_text(pHplot), " ", get_alt_text(cnplot))}
 library(cowplot)
 sitecode = "ACBUBL"
 sitename = getSites(site = sitecode)$SiteName
@@ -846,21 +903,24 @@ This function produces a plot with dual y-axes, one for precipitation and one fo
 <b style="color:red;">Note that the climateNETN package must be installed for this function to work, as it relies on downloading daily precipitation data.</b> To install run `pak::pkg_install("doi-nps/climateNETN")`
 
 <p class = 'fxn'>Plot Discharge for Mill Brook in MIMA for past 3 years using default colors and gridlines on the y-axis and english units. </p>
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, fig.alt = get_alt_text(mima_disch)}
+mima_disch <-
 plotPrecipDischarge(site = c("MIMASA"), years = 2021:2023, gridlines = "grid_y", units = "eng")
-
+mima_disch
 ```
 
 <p class = 'fxn'>Plot daily precipitation vs discharge for all ROVA sites in 2021, only accepting observations of"Excellent", "Good", or "Fair". </p>
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, fig.alt = get_alt_text(rova_disch)}
+rova_disch <- 
 plotPrecipDischarge(park = "ROVA", years = 2021, rating = c("E", "G", "F"))
-
+rova_disch
 ```
 
 <p class = 'fxn'>Plot Discharge for Aunt Betty Inlet and Kebo Stream for 2024 using different colors. Note that this can be slow because has to download precip. data from NADP. LNETN parks download from a faster web service. </p>
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, fig.alt = get_alt_text(bin_keb)}
+bin_keb <- 
 plotPrecipDischarge(site = c("ACABIN", "ACKEBO"), years = 2024, palette = c("cornflowerblue", "orange"))
-
+bin_keb
 ```
 
 

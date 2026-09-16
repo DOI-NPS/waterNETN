@@ -450,11 +450,13 @@ plotWaterBands <- function(park = "all", site = "all",
                               #                  "Historic Median: ", round(median_val, 1), "<br>")
                               ), lwd = 0.7) +
                 geom_point(data = wdat_curr,
-                           aes(y = Value, x = mon, color = metric_type, group = metric_type,
-                               tooltip = paste0("Site: ", SiteName, "<br>",
-                                                "Month: ", mon, "<br>",
-                                                "Parameter: ", param_label, "<br>",
-                                                "Current Value: ", round(Value, 1), "<br>"))) +
+                           aes(y = Value, x = mon, color = metric_type, group = metric_type#,
+                               #tooltip = paste0("Site: ", SiteName, "<br>", # for eventual use in ggiraph
+                               #                  "Month: ", mon, "<br>",
+                               #                 "Parameter: ", param_label, "<br>",
+                               #                  "Current Value: ", round(Value, 1), "<br>")
+                               )
+                               ) +
                 scale_color_manual(values = plot_values,
                                    breaks = plot_breaks,
                                    labels = plot_labels,
