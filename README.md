@@ -1,5 +1,5 @@
 # waterNETN
-This package contains functions that import database views from the water data package Access database and or 
+This package contains functions that import database views from the water data package Access database and/or 
 CSVs in the NETN water data package and provides functions to query, summarize, and visualize NETN water data.
 The R package can be installed using `pak::pkg_install('doi-nps/waterNETN')`. Previous archived 
 versions of this R package can be found at <a href="www.github.com/katemmiller/waterNETN">
